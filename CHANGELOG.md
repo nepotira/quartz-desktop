@@ -7,6 +7,34 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.15.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-terminal` (Fase 15 - Emulador de Terminal GPU-accelerated em Liquid Glass com Drag-Drop Path Escaping)**:
+  - **Grade de Células de Alta Performance e Parser ANSI/VT100 (`src/grid.rs`)**:
+    - Suporte a Truecolor 24-bits (`\x1b[38;2;r;g;bm` e `\x1b[48;2;r;g;bm`), paleta de 16 cores padrão ANSI, e atributos de texto completos (negrito, fraco, itálico, sublinhado, tachado, invertido e piscante).
+    - Histórico de rolagem (Scrollback) profundo de 10.000 linhas com suporte a rolagem suave contínua subpixel e Cocoa rubber-banding.
+    - Estilos visuais de cursor configuráveis: Bloco (`█`), Sublinhado (`_`) e Traço Vertical I-Beam (`|`).
+  - **Motor de Escape de Caminhos por Arrasto e Soltura (Drag-Drop Path Escaping) (`src/dnd.rs`)**:
+    - Escapamento automático de espaços e metacaracteres de shell (` `, `\`, `"`, `'`, `(`, `)`, `[`, `]`, `{`, `}`, `&`, `|`, `;`, `$`, `*`, `?`, `<`, `>`, `^`, `#`, `!`) ao arrastar arquivos/pastas do Finder ou Mesa.
+    - Estratégias configuráveis: Escapamento por barras invertidas (estilo nativo macOS Terminal) e envoltório em aspas simples POSIX (`'...'`).
+    - Decodificação de octetos percent-encoded (`%20` $\to$ espaço) em listas de URIs (`file://` / `text/uri-list`) do Wayland.
+    - Concatenação automática de múltiplos caminhos separados por espaço prontos para execução no prompt.
+  - **Gestor de Sessões PTY e Processos Shell (`src/pty.rs`)**:
+    - Ciclo de vida de pseudo-terminais (PTY master/slave) com detecção automática do shell padrão do usuário (`$SHELL`, `/bin/zsh`, `/bin/bash`).
+    - Injeção das variáveis de ambiente canônicas do sistema: `TERM=xterm-256color`, `COLORTERM=truecolor`, `QUARTZ_DESKTOP=1` e `LANG=en_US.UTF-8`.
+    - Sinalização de redimensionamento dinâmico de colunas e linhas (`TIOCSWINSZ` / `SIGWINCH`).
+  - **Perfis Visuais e Material Óptico Liquid Glass (`src/theme.rs`)**:
+    - 5 perfis canônicos: `Tahoe Glass` (Acrílico translúcido escuro `#171A21` a 76% com cursor ciano), `Pro` (Vidro preto profundo com cursor verde), `Silver` (Vidro claro translúcido com tipografia escura), `Homebrew` (Verde fósforo `#33FF00` estilo CRT sobre preto puro) e `Ocean` (Acrílico azul marinho profundo com cursor âmbar).
+    - Material óptico com blur Dual-Kawase de fundo ($\sigma = 24.0\text{px}$) e refração ($\eta = 1.52$).
+    - Ajuste de escala tipográfica com atalhos de teclado (`Cmd++`, `Cmd+-`, `Cmd+0`).
+  - **Controlador de Janela e Sessões com Abas e Divisão de Painéis (`src/window.rs`)**:
+    - Arquitetura multi-abas com sessões PTY e buffers de grade isolados por aba.
+    - Integração de arrasto e soltura direcionando caminhos escapados diretamente para o PTY da aba ativa.
+    - Barra de busca interna no terminal (`Cmd+F`) com realce de correspondências.
+
+---
+
 ## [0.14.0-alpha.1] - 2026-10-15
 
 ### Added
