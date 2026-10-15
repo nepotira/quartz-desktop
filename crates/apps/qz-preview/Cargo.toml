@@ -1,0 +1,20 @@
+[package]
+name = "qz-preview"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "macOS Tahoe 26 Preview Application (Multi-page PDFs, Images, Advanced Markup, Trackpad Signature, Color Profiles)"
+
+[dependencies]
+qz-animation = { workspace = true }
+qz-renderer = { workspace = true }
+qz-toolkit = { workspace = true }
+glam = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }

@@ -7,6 +7,38 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.13.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-preview` (Fase 13 - Aplicativo Pré-Visualização Tahoe 26: PDFs Multi-Páginas, Imagens, Anotações Avançadas, Assinatura via Trackpad e Perfis de Cor)**:
+  - **Modelo de Documento Multi-Página e Viewport Subpixel (`src/document.rs`)**:
+    - Suporte unificado para PDFs e imagens raster (PNG, JPEG, WebP, HEIC, TIFF).
+    - Zoom contínuo de $0.1\times$ a $10.0\times$ com tamanho real (`Cmd+0`), ajustar à janela (`Cmd+9`) e margens seguras.
+    - Rotações horária e anti-horária a cada $90^\circ$ (`Cmd+R` / `Cmd+L`), reordenação de páginas e exclusão de páginas.
+    - Modos de layout de exibição: Página Única (`SinglePage`), Rolagem Contínua (`ContinuousScroll`), Duas Páginas (`TwoPages`) e Folha de Contatos (`ContactSheet`).
+    - Rastreamento estrito de estado não-salvo (Dirty state) atualizando título e ícone proxy.
+  - **Motor de Anotações e Markup Avançado (`src/markup.rs`)**:
+    - Ferramentas completas de marcação: Seleção, Alfa Instantâneo (remoção de fundo/varinha mágica), Desenho livre (Sketch) com sensibilidade a pressão ($1.0..=16.0\text{px}$) e suavização por splines cúbicas de Catmull-Rom.
+    - Reconhecimento automático de formas geométricas: Detecção analítica de círculos/elipses, retângulos e setas direcionais a partir do traçado à mão livre.
+    - Formas vetoriais nativas: Retângulo, Elipse, Linha, Seta, Balão de fala, Estrela de 5 pontas e Lupa óptica (Loupe) com ampliação ajustável ($1.5\times$ a $5.0\times$).
+    - Marcador de texto translúcido com mesclagem multiplicativa (Highlighter) e caixas de texto com formatação tipográfica.
+    - Pilha transacional completa de Desfazer/Refazer (Undo/Redo) com operações atômicas.
+  - **Captura e Cofre de Assinaturas via Trackpad (`src/signature.rs`)**:
+    - Superfície de desenho no trackpad em coordenadas normalizadas $(u, v) \in [0.0, 1.0] \times [0.0, 1.0]$ com pressão $p \in [0.0, 1.0]$.
+    - Interpolação cúbica de Hermite ($C^1$ contínua) com variação caligráfica da espessura do traço dependente da velocidade e pressão.
+    - Cofre persistente de assinaturas digitais (`SignatureVault`) com rotulagem amigável ("Assinatura Formal", "Iniciais") e inserção proporcional preservando proporção de tela em páginas do documento.
+  - **Motor de Exportação e Incorporação de Perfis de Cor (`src/export.rs`)**:
+    - Conversão multi-formato de alta fidelidade (PDF, PNG, JPEG, WebP, TIFF).
+    - Incorporação de perfis de cor ICC: Display P3 (ampla gama de cores), sRGB, Adobe RGB (1998) e ProPhoto RGB.
+    - Achatamento opcional de anotações (Flattening) em densidades de resolução configuráveis (72 DPI tela, 144 DPI @2x Retina, 300 DPI impressão).
+    - Filtros flexíveis de intervalo de páginas: Todas, Página Individual ou Intervalo Contíguo.
+  - **Controlador de Janela e Cromo Liquid Glass (`src/window.rs`)**:
+    - Barra de título unificada com luzes de tráfego, indicador de estado não-salvo (`•` bullet dot) e Ícone Proxy de Documento interativo com ciclo de vida de arrasto para Finder/Mail.
+    - Barra de ferramentas secundária flutuante de vidro líquido (Liquid Glass) recolhível para marcação (`Cmd+Shift+A`).
+    - Gaveta de barra lateral multifuncional: Miniaturas de páginas com reordenação, Índice de marcadores (TOC) e lista de anotações e notas destacadas.
+
+---
+
 ## [0.12.0-alpha.1] - 2026-10-15
 
 ### Added
