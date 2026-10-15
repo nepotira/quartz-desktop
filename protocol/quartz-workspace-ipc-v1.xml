@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="quartz_workspace_ipc_v1">
+  <copyright>
+    Copyright © 2025-2026 QuartzLinux Systems Architecture Project.
+    Copyright © 2026 macOS Tahoe Compatibility Team.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+  </copyright>
+
+  <description summary="Quartz Desktop Workspace IPC and Compositor Interop">
+    This protocol provides privileged workspace interaction services:
+    - High-fidelity isolated window screenshot with transparent alpha and Apple dual-layer analytical shadow.
+    - Quick Look 120fps expansion rectangle transitions between icon bounds and preview rect.
+    - Magnetic Picture-in-Picture (PiP) docking, free positioning with Cmd, and side-tuck tabs.
+    - Desktop Reveal ("Click Wallpaper to Reveal Desktop") spring window scatter and restore.
+  </description>
+
+  <interface name="zquartz_workspace_ipc_manager_v1" version="1">
+    <description summary="Root workspace inter-process communication factory">
+      Factory interface for desktop daemons (qz-screenshot, qz-quicklook, qz-finder, qz-shell).
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy workspace IPC manager"/>
+    </request>
+
+    <request name="create_screenshot_session">
+      <description summary="Create a screenshot capture session">
+        Initiates an isolated capture session for Cmd+Shift+3, Cmd+Shift+4 or Cmd+Shift+5.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_screenshot_session_v1" summary="New session controller"/>
+    </request>
+
+    <request name="create_quicklook_session">
+      <description summary="Create a Quick Look expand/collapse session">
+        Connects the Quick Look daemon to compositor window coordinate tracking.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_quicklook_session_v1" summary="New QuickLook session"/>
+    </request>
+
+    <request name="create_pip_controller">
+      <description summary="Register a surface as a magnetic Picture-in-Picture window">
+        Grants magnetic spring snapping, edge-tucking, and Cmd-free-positioning.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_pip_controller_v1" summary="New PiP controller"/>
+      <arg name="surface" type="object" interface="wl_surface" summary="Video surface"/>
+    </request>
+
+    <request name="create_desktop_reveal_controller">
+      <description summary="Acquire controller for Desktop Reveal state">
+        Allows Finder and Shell to query and toggle Desktop Reveal window pushout.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_desktop_reveal_controller_v1" summary="New reveal controller"/>
+    </request>
+  </interface>
+
+  <interface name="zquartz_screenshot_session_v1" version="1">
+    <description summary="Isolated Screenshot and Screen Recording Session">
+      Handles high-precision captures with exact Apple shadow geometry and alpha blending.
+    </description>
+
+    <enum name="capture_mode">
+      <description summary="Screenshot targeting mode"/>
+      <entry name="all_screens" value="0" summary="Entire multi-monitor desktop work area"/>
+      <entry name="selection_rect" value="1" summary="User-dragged rectangular crop"/>
+      <entry name="isolated_window" value="2" summary="Camera mode (Spacebar): captures selected window with alpha + shadow"/>
+      <entry name="menu_bar" value="3" summary="Top menu bar or popover menu"/>
+      <entry name="dock" value="4" summary="Dock panel with background blur"/>
+    </enum>
+
+    <enum name="shadow_mode">
+      <description summary="Shadow inclusion option"/>
+      <entry name="include_shadow" value="0" summary="Default: Apple dual-layer analytical Gaussian shadow on transparent PNG"/>
+      <entry name="omit_shadow" value="1" summary="Option held: Crisp window bounds without shadow penumbra"/>
+    </enum>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy screenshot session"/>
+    </request>
+
+    <request name="capture_isolated_window">
+      <description summary="Capture window texture with alpha and dual-layer shadow">
+        Composites only the specified window onto a transparent backing buffer,
+        including ambient occlusion and penumbra shadows generated by shadow_sdf.frag.
+      </description>
+      <arg name="window_id" type="uint" summary="Target window compositor ID"/>
+      <arg name="shadow" type="uint" enum="shadow_mode" summary="Shadow mode"/>
+    </request>
+
+    <request name="capture_region">
+      <description summary="Capture custom rectangle with crosshair coordinates">
+        Captures the exact rectangle on screen.
+      </description>
+      <arg name="x" type="int" summary="Origin X"/>
+      <arg name="y" type="int" summary="Origin Y"/>
+      <arg name="width" type="uint" summary="Width in physical pixels"/>
+      <arg name="height" type="uint" summary="Height in physical pixels"/>
+    </request>
+
+    <!-- Events -->
+    <event name="buffer_ready">
+      <description summary="Captured image buffer ready in shared memory or DMA-BUF">
+        Transfers the image file descriptor, dimensions, stride, and format to client.
+      </description>
+      <arg name="fd" type="fd" summary="Shared memory file descriptor containing raw BGRA8/RGBA8"/>
+      <arg name="width" type="uint" summary="Width"/>
+      <arg name="height" type="uint" summary="Height"/>
+      <arg name="stride" type="uint" summary="Bytes per row"/>
+      <arg name="format" type="uint" summary="DRM fourcc format"/>
+      <arg name="has_alpha" type="uint" summary="1 if transparent background, 0 if opaque"/>
+    </event>
+
+    <event name="capture_cancelled">
+      <description summary="User cancelled screenshot (pressed Escape)"/>
+    </event>
+  </interface>
+
+  <interface name="zquartz_quicklook_session_v1" version="1">
+    <description summary="Quick Look 120fps Rect Zoom and Anchor Daemon">
+      Computes the source icon bounds in Desktop/Finder coordinates and smoothly
+      animates a 120fps spring zoom to the centered Quick Look window geometry.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy QuickLook session"/>
+    </request>
+
+    <request name="request_expand_geometry">
+      <description summary="Query source bounds of currently selected item">
+        Compositor locates the active icon in Finder, Desktop, or Open/Save dialog.
+      </description>
+      <arg name="file_path" type="string" summary="Path of file to preview"/>
+    </request>
+
+    <request name="animate_collapse">
+      <description summary="Notify compositor to animate QuickLook window back into icon">
+        Reverses the spring zoom animation when Quick Look is dismissed with Spacebar.
+      </description>
+      <arg name="file_path" type="string" summary="Path of file"/>
+    </request>
+
+    <!-- Events -->
+    <event name="geometry_resolved">
+      <description summary="Source icon bounding box resolved">
+        Provides exact screen coordinates of the item icon for 120fps spring zoom origin.
+      </description>
+      <arg name="src_x" type="int" summary="Icon center X"/>
+      <arg name="src_y" type="int" summary="Icon center Y"/>
+      <arg name="src_width" type="uint" summary="Icon width"/>
+      <arg name="src_height" type="uint" summary="Icon height"/>
+      <arg name="target_x" type="int" summary="Target center X"/>
+      <arg name="target_y" type="int" summary="Target center Y"/>
+      <arg name="target_width" type="uint" summary="Target width"/>
+      <arg name="target_height" type="uint" summary="Target height"/>
+    </event>
+  </interface>
+
+  <interface name="zquartz_pip_controller_v1" version="1">
+    <description summary="Magnetic Picture-in-Picture Window Controller">
+      Enforces corner magnetism, edge collapse, and Cmd-modifier free positioning.
+    </description>
+
+    <enum name="corner">
+      <description summary="Magnetic screen corners"/>
+      <entry name="top_left" value="0" summary="Top-left corner"/>
+      <entry name="top_right" value="1" summary="Top-right corner"/>
+      <entry name="bottom_left" value="2" summary="Bottom-left corner"/>
+      <entry name="bottom_right" value="3" summary="Bottom-right corner (default)"/>
+    </enum>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy PiP controller"/>
+    </request>
+
+    <request name="snap_to_corner">
+      <description summary="Magnetically snap PiP window to designated corner">
+        Uses SpringParams::stage_manager() to animate into corner with 16px padding.
+      </description>
+      <arg name="target_corner" type="uint" enum="corner" summary="Destination corner"/>
+    </request>
+
+    <request name="tuck_to_edge">
+      <description summary="Hide video body off-screen leaving a pull tab">
+        Pushes the PiP frame off the nearest display edge, revealing a floating chevron.
+      </description>
+    </request>
+
+    <request name="untuck">
+      <description summary="Restore video body from tucked state">
+        Animates video back into visible corner bounds.
+      </description>
+    </request>
+
+    <!-- Events -->
+    <event name="snapped">
+      <description summary="Window has magnetically settled in a corner"/>
+      <arg name="corner" type="uint" enum="corner" summary="Settled corner"/>
+    </event>
+  </interface>
+
+  <interface name="zquartz_desktop_reveal_controller_v1" version="1">
+    <description summary="Desktop Reveal ('Click Wallpaper to Reveal') Controller">
+      Manages smooth displacement of all application windows away from the center
+      to reveal desktop stacks and wallpaper.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy reveal controller"/>
+    </request>
+
+    <request name="toggle_reveal">
+      <description summary="Toggle Desktop Reveal animation state">
+        If active, scatters windows outward; if already scattered, pulls them back.
+      </description>
+    </request>
+
+    <!-- Events -->
+    <event name="state_changed">
+      <description summary="Desktop reveal state transitioned"/>
+      <arg name="is_revealed" type="uint" summary="1 if desktop is revealed, 0 if normal"/>
+      <arg name="progress" type="fixed" summary="Normalized animation progress [0.0, 1.0]"/>
+    </event>
+  </interface>
+</protocol>

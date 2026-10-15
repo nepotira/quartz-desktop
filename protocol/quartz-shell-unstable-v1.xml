@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="quartz_shell_unstable_v1">
+  <copyright>
+    Copyright © 2025-2026 QuartzLinux Systems Architecture Project.
+    Copyright © 2026 macOS Tahoe Compatibility Team.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+  </copyright>
+
+  <description summary="macOS Tahoe 26 Window Chrome, Liquid Glass and Aqua Experience">
+    This protocol defines compositor extensions for macOS Tahoe 26 window semantics:
+    - Unified Liquid Glass and G2 Superellipse (Squircle) rendering parameters.
+    - Floating Glass Pills for sidebars and toolbars with custom inset margins.
+    - Traffic light control (Close, Minimize, Zoom/Tile) with dirty state dot.
+    - Document proxy icons with drag-and-drop file path binding.
+    - Modal sheets attached to parent window titlebars.
+    - Universal window tabbing and tab detach/reattach mechanics.
+  </description>
+
+  <interface name="zquartz_shell_v1" version="1">
+    <description summary="Factory interface for Quartz window extensions">
+      The global interface exposed by the Quartz compositor to create per-surface
+      and per-window decoration controllers.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy the global shell manager">
+        Destroys the factory object. Existing objects created from this interface
+        remain unaffected.
+      </description>
+    </request>
+
+    <request name="get_quartz_surface">
+      <description summary="Obtain Quartz surface controller for a given surface">
+        Instantiates a zquartz_surface_v1 object associated with an existing
+        wl_surface to manage Tahoe 26 chrome, liquid glass effects, traffic lights
+        and proxy icon interactions.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_surface_v1" summary="New Quartz surface controller"/>
+      <arg name="surface" type="object" interface="wl_surface" summary="Target wl_surface"/>
+    </request>
+
+    <request name="create_sheet">
+      <description summary="Create a modal sheet attached to a parent surface">
+        Creates a modal sheet dialog attached to the parent window's titlebar.
+        The sheet moves synchronously with the parent and blocks input exclusively
+        to the parent window.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_sheet_v1" summary="New Quartz sheet controller"/>
+      <arg name="sheet_surface" type="object" interface="wl_surface" summary="Surface presenting the sheet"/>
+      <arg name="parent_surface" type="object" interface="wl_surface" summary="Parent window surface"/>
+    </request>
+
+    <request name="create_tab_group">
+      <description summary="Create a native window tab group">
+        Groups multiple windows into a native tab bar.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_tab_group_v1" summary="New tab group controller"/>
+      <arg name="group_id" type="string" summary="Unique identifier or application bundle id for the tab group"/>
+    </request>
+  </interface>
+
+  <interface name="zquartz_surface_v1" version="1">
+    <description summary="Quartz window chrome and Liquid Glass controller">
+      Manages client-compositor coordination for macOS Tahoe 26 styling:
+      traffic lights, dirty state, proxy icons, floating glass sidebars,
+      and window tiling popovers.
+    </description>
+
+    <enum name="traffic_light_button">
+      <description summary="Individual traffic light identifiers"/>
+      <entry name="close" value="0" summary="Red button (Close window or Option+Close all)"/>
+      <entry name="minimize" value="1" summary="Yellow button (Minimize with Genie effect or Option+Minimize all)"/>
+      <entry name="zoom" value="2" summary="Green button (Full screen, Option+Classic Zoom, or Tiling popover)"/>
+    </enum>
+
+    <enum name="traffic_light_state">
+      <description summary="Visual state of the traffic lights cluster"/>
+      <entry name="inactive" value="0" summary="Monochrome translucent circles"/>
+      <entry name="active" value="1" summary="Vibrant standard colors (red, yellow, green)"/>
+      <entry name="hovered" value="2" summary="Hovering over cluster: reveals symbols x, -, +"/>
+    </enum>
+
+    <enum name="tiling_action">
+      <description summary="Window tiling presets from green button popover"/>
+      <entry name="full_screen" value="0" summary="Enter dedicated fullscreen space"/>
+      <entry name="classic_zoom" value="1" summary="Maximize to desktop work area preserving dock and menu bar"/>
+      <entry name="tile_left_half" value="2" summary="Tile to left 50% screen with 8px margin"/>
+      <entry name="tile_right_half" value="3" summary="Tile to right 50% screen with 8px margin"/>
+      <entry name="tile_top_half" value="4" summary="Tile to top 50% screen"/>
+      <entry name="tile_bottom_half" value="5" summary="Tile to bottom 50% screen"/>
+      <entry name="tile_top_left" value="6" summary="Tile to top-left quadrant"/>
+      <entry name="tile_top_right" value="7" summary="Tile to top-right quadrant"/>
+      <entry name="tile_bottom_left" value="8" summary="Tile to bottom-left quadrant"/>
+      <entry name="tile_bottom_right" value="9" summary="Tile to bottom-right quadrant"/>
+      <entry name="center" value="10" summary="Center window on screen"/>
+      <entry name="move_to_next_display" value="11" summary="Send to adjacent monitor"/>
+    </enum>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy Quartz surface controller"/>
+    </request>
+
+    <request name="set_document_edited">
+      <description summary="Toggle edited (dirty) indicator in red close button">
+        When set to true, the red close button displays an inner dark dot
+        indicating unsaved document changes.
+      </description>
+      <arg name="edited" type="uint" summary="1 if edited/dirty, 0 if clean"/>
+    </request>
+
+    <request name="set_proxy_icon_file">
+      <description summary="Bind document file path to titlebar proxy icon">
+        Provides the canonical URI or filesystem path of the active document.
+        The compositor renders the file proxy icon next to the title text and
+        enables dragging the proxy icon to initiate a wl_data_device drag of the file.
+      </description>
+      <arg name="file_path" type="string" summary="Absolute filesystem path or file:// URI"/>
+    </request>
+
+    <request name="set_liquid_glass_region">
+      <description summary="Define region for liquid glass refractive shader">
+        Specifies a region within the surface where the background dual-Kawase blur,
+        G2 squircle SDF, chromatic dispersion and specular rim must be composited.
+      </description>
+      <arg name="region" type="object" interface="wl_region" allow-null="true" summary="Glass blur region"/>
+      <arg name="tint_color_rgba" type="uint" summary="32-bit packed RGBA tint color"/>
+      <arg name="corner_radius" type="fixed" summary="Corner radius in surface coordinates"/>
+      <arg name="refract_amount" type="fixed" summary="Refraction strength in pixels"/>
+    </request>
+
+    <request name="create_floating_pill">
+      <description summary="Register a floating glass pill within this surface">
+        Creates a floating glass sidebar or toolbar pill that floats above the
+        scrolling content with 8px inset margins and G2 squircle clipping.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_floating_pill_v1" summary="New pill controller"/>
+      <arg name="pill_surface" type="object" interface="wl_surface" summary="Subsurface containing pill content"/>
+      <arg name="x" type="int" summary="Offset X relative to parent"/>
+      <arg name="y" type="int" summary="Offset Y relative to parent"/>
+      <arg name="width" type="uint" summary="Pill width"/>
+      <arg name="height" type="uint" summary="Pill height"/>
+      <arg name="inset_margin" type="uint" summary="Margin from window frame (default 8px)"/>
+    </request>
+
+    <!-- Events sent from Compositor to Client -->
+    <event name="traffic_light_clicked">
+      <description summary="Notification that user clicked a traffic light button">
+        Sent to the client when a traffic light button is clicked.
+      </description>
+      <arg name="button" type="uint" enum="traffic_light_button" summary="Clicked button"/>
+      <arg name="modifiers" type="uint" summary="Active modifiers (1 = Shift, 2 = Option, 4 = Cmd, 8 = Ctrl)"/>
+    </event>
+
+    <event name="traffic_light_state_changed">
+      <description summary="Traffic lights cluster state update">
+        Notifies client of hover or focus changes affecting traffic lights display.
+      </description>
+      <arg name="state" type="uint" enum="traffic_light_state" summary="New state"/>
+    </event>
+
+    <event name="tiling_action_requested">
+      <description summary="User triggered a tiling action via green button popover">
+        Sent when user selects an action in the 500ms hover tiling popover.
+      </description>
+      <arg name="action" type="uint" enum="tiling_action" summary="Selected tiling action"/>
+    </event>
+  </interface>
+
+  <interface name="zquartz_floating_pill_v1" version="1">
+    <description summary="Floating Glass Pill controller for sidebars and toolbars">
+      Controls an isolated capsule floating over the window content with its own
+      analytical dual-layer shadow, squircle G2 SDF outline, and refraction.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy floating pill controller"/>
+    </request>
+
+    <request name="set_geometry">
+      <description summary="Update pill dimensions and positioning">
+        Updates the geometry and inset margins of the floating pill.
+      </description>
+      <arg name="x" type="int" summary="X offset"/>
+      <arg name="y" type="int" summary="Y offset"/>
+      <arg name="width" type="uint" summary="Pill width"/>
+      <arg name="height" type="uint" summary="Pill height"/>
+      <arg name="corner_radius" type="fixed" summary="Corner radius"/>
+    </request>
+
+    <request name="set_shadow_level">
+      <description summary="Select shadow preset for pill">
+        Sets shadow profile: 2 for standard floating glass pill (10px blur, 4px y-offset).
+      </description>
+      <arg name="shadow_profile" type="uint" summary="Shadow profile (2 = floating pill)"/>
+    </request>
+  </interface>
+
+  <interface name="zquartz_sheet_v1" version="1">
+    <description summary="Modal Sheet dialog controller">
+      Manages a sheet dialog that slides out from beneath the parent window's
+      titlebar with a spring animation and modal dimming overlay on the parent.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Dismiss and destroy the sheet"/>
+    </request>
+
+    <request name="present">
+      <description summary="Animate sheet unfolding from parent titlebar">
+        Triggers the 120fps spring animation unfolding the sheet downward.
+      </description>
+    </request>
+
+    <request name="dismiss">
+      <description summary="Animate sheet folding back under parent titlebar">
+        Reverses the spring animation, restoring full interactivity to the parent.
+      </description>
+    </request>
+
+    <event name="presented">
+      <description summary="Sheet has finished rollout animation"/>
+    </event>
+
+    <event name="dismissed">
+      <description summary="Sheet has finished folding animation and is closed"/>
+    </event>
+  </interface>
+
+  <interface name="zquartz_tab_group_v1" version="1">
+    <description summary="Universal Window Tab Bar controller">
+      Allows multiple windows belonging to an application or workflow to be
+      merged into a unified window frame with native macOS Tahoe 26 tabs.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy tab group controller"/>
+    </request>
+
+    <request name="add_surface">
+      <description summary="Add a surface to the tab group">
+        Embeds the given surface as a tab in this group.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface" summary="Surface to add as tab"/>
+      <arg name="title" type="string" summary="Tab label"/>
+      <arg name="index" type="int" summary="Insertion index, or -1 for append"/>
+    </request>
+
+    <request name="remove_surface">
+      <description summary="Remove a surface from the tab group">
+        Extracts a tab from the group, restoring it to a standalone window.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface" summary="Surface to remove"/>
+    </request>
+
+    <request name="select_tab">
+      <description summary="Switch active tab">
+        Brings the tab at index to the front of the window frame.
+      </description>
+      <arg name="index" type="uint" summary="Zero-based tab index"/>
+    </request>
+
+    <!-- Events -->
+    <event name="tab_detached">
+      <description summary="User dragged tab vertically beyond threshold (>32px)">
+        Sent when the user drags a tab out of the tab bar, signaling that it
+        should become a separate top-level window.
+      </description>
+      <arg name="index" type="uint" summary="Index of detached tab"/>
+      <arg name="screen_x" type="int" summary="Current pointer X coordinate"/>
+      <arg name="screen_y" type="int" summary="Current pointer Y coordinate"/>
+    </event>
+
+    <event name="tab_reordered">
+      <description summary="Tabs were reordered by user drag">
+        Notifies client of tab position changes within the tab bar.
+      </description>
+      <arg name="old_index" type="uint" summary="Previous index"/>
+      <arg name="new_index" type="uint" summary="New index"/>
+    </event>
+  </interface>
+</protocol>

@@ -1,0 +1,17 @@
+[package]
+name = "qz-animation"
+version = "0.1.0"
+edition = "2024"
+authors = ["QuartzLinux Core Systems Architecture Team <dev@quartzlinux.org>"]
+description = "Analytical 2nd order ODE Spring Physics, Cocoa Rubber-Banding and Cursor Shake Detector for QuartzLinux"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+thiserror = { workspace = true }
+glam = { workspace = true }
+serde = { workspace = true, optional = true }
+approx = { workspace = true }
+
+[features]
+default = []
+serde = ["dep:serde"]

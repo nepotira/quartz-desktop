@@ -1,0 +1,105 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/qz-animation",
+    "crates/qz-compositor",
+    # Planned workspace crates added in subsequent phases:
+    # "crates/qz-renderer",
+    # "crates/qz-shell",
+    # "crates/qz-spotlight",
+    # "crates/qz-finder",
+    # "crates/qz-quicklook",
+    # "crates/qz-screenshot",
+    # "crates/qz-daemons",
+    # "crates/qz-session-lock",
+    # "crates/qz-toolkit",
+    # "crates/apps/qz-settings",
+    # "crates/apps/qz-preview",
+    # "crates/apps/qz-activity-monitor",
+    # "crates/apps/qz-terminal",
+    # "compat/xdg-desktop-portal-quartz",
+    # "compat/gtk-quartz-module",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["QuartzLinux Core Systems Architecture Team <dev@quartzlinux.org>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/quartz-linux/quartz-desktop"
+homepage = "https://quartzlinux.org"
+
+[workspace.dependencies]
+# Error Handling and Diagnostics
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "time"] }
+log = "0.4"
+
+# Concurrency, Async and Event Loop
+tokio = { version = "1.43", features = ["full"] }
+calloop = "0.14"
+futures = "0.3"
+crossbeam-channel = "0.5"
+
+# Math, Geometry and Physics
+glam = { version = "0.30", features = ["scalar-math", "serde"] }
+approx = "0.5"
+
+# Wayland Server and Protocols (Smithay Ecosystem)
+wayland-server = "0.31"
+wayland-client = "0.31"
+wayland-protocols = { version = "0.32", features = ["server", "client"] }
+wayland-protocols-wlr = { version = "0.3", features = ["server", "client"] }
+wayland-protocols-misc = { version = "0.3", features = ["server", "client"] }
+wayland-backend = { version = "0.3", features = ["server_system", "client_system"] }
+wayland-scanner = "0.31"
+
+# Input and Hardware
+xkbcommon = { version = "0.8", features = ["wayland"] }
+input = "0.9"
+udev = "0.9"
+drm = "0.14"
+
+# Graphics, Vulkan and Shaders
+ash = { version = "0.38", features = ["linked"] }
+gpu-allocator = { version = "0.27", default-features = false, features = ["vulkan"] }
+glow = "0.16"
+vello = "0.6"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+
+# IPC, Serialization and Desktop Standards
+zbus = { version = "5.5", default-features = false, features = ["tokio"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bitflags = "2.8"
+memmap2 = "0.9"
+
+# Internal Workspace Crates
+qz-animation = { path = "crates/qz-animation" }
+qz-renderer = { path = "crates/qz-renderer" }
+qz-compositor = { path = "crates/qz-compositor" }
+qz-shell = { path = "crates/qz-shell" }
+qz-spotlight = { path = "crates/qz-spotlight" }
+qz-finder = { path = "crates/qz-finder" }
+qz-quicklook = { path = "crates/qz-quicklook" }
+qz-screenshot = { path = "crates/qz-screenshot" }
+qz-daemons = { path = "crates/qz-daemons" }
+qz-session-lock = { path = "crates/qz-session-lock" }
+qz-toolkit = { path = "crates/qz-toolkit" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "unwind"
+overflow-checks = false
+debug = false
+strip = "symbols"
+
+[profile.dev]
+opt-level = 1
+debug = true
+overflow-checks = true

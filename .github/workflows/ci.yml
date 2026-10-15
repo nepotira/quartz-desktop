@@ -1,0 +1,65 @@
+name: QuartzLinux CI (Cloud Compilation & Test)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-and-test:
+    name: Build & Test (Ubuntu Runner)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwayland-dev \
+            wayland-protocols \
+            libxkbcommon-dev \
+            libvulkan-dev \
+            vulkan-tools \
+            libgl1-mesa-dev \
+            libgles2-mesa-dev \
+            libegl1-mesa-dev \
+            libinput-dev \
+            libudev-dev \
+            libdrm-dev \
+            libgbm-dev \
+            libseat-dev \
+            libdbus-1-dev
+
+      - name: Setup Rust Stable Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Verify Wayland Protocols XML Syntax
+        run: |
+          python3 -c "
+          import xml.etree.ElementTree as ET, glob
+          for f in glob.glob('protocol/*.xml'):
+              ET.parse(f)
+              print(f'Valid XML: {f}')
+          "
+
+      - name: Cargo Check
+        run: cargo check --workspace --all-targets
+
+      - name: Cargo Test
+        run: cargo test --workspace --all-targets -- --nocapture
+
+      - name: Cargo Build Release
+        run: cargo build --workspace --release

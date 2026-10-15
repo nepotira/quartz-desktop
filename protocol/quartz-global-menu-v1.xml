@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="quartz_global_menu_v1">
+  <copyright>
+    Copyright © 2025-2026 QuartzLinux Systems Architecture Project.
+    Copyright © 2026 macOS Tahoe Compatibility Team.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+  </copyright>
+
+  <description summary="macOS Tahoe 26 Top Bar Global Menu Protocol">
+    This protocol defines the communication between applications and the Quartz
+    Top Menu Bar daemon:
+    - Application bold menu and standard menus (File, Edit, View, Window, Help).
+    - Option-dynamic menu item mutations in real time (e.g. Close -> Close All).
+    - Help Search Rector for indexing menu actions and steering the floating blue pointer arrow.
+    - Window list synchronization with checkmark (active) and diamond (minimized).
+    - Rapid 0ms sliding between adjacent top-level menus and 120ms double-flash activation.
+  </description>
+
+  <interface name="zquartz_global_menu_manager_v1" version="1">
+    <description summary="Global menu manager factory">
+      Factory interface for advertising and binding application menus to the
+      centralized Top Menu Bar.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="Destroy global menu manager"/>
+    </request>
+
+    <request name="register_application_menu">
+      <description summary="Register an application top-level menu hierarchy">
+        Registers a global menu hierarchy for the given application ID.
+      </description>
+      <arg name="id" type="new_id" interface="zquartz_global_menu_v1" summary="New menu controller"/>
+      <arg name="app_id" type="string" summary="Desktop application identifier (e.g. org.quartz.finder)"/>
+      <arg name="app_name" type="string" summary="Display name displayed in bold next to Apple logo"/>
+    </request>
+  </interface>
+
+  <interface name="zquartz_global_menu_v1" version="1">
+    <description summary="Application menu instance controller">
+      Controls an active application's menu tree in the Top Menu Bar.
+    </description>
+
+    <enum name="item_state_flags">
+      <description summary="Bitmask of menu item visual states"/>
+      <entry name="enabled" value="1" summary="Item is interactive"/>
+      <entry name="checked" value="2" summary="Item displays a checkmark symbol"/>
+      <entry name="diamond" value="4" summary="Item displays a diamond symbol (minimized window)"/>
+      <entry name="separator" value="8" summary="Item is a horizontal dividing line"/>
+      <entry name="has_submenu" value="16" summary="Item expands into a child submenu"/>
+    </enum>
+
+    <enum name="modifier_mask">
+      <description summary="Modifier keys associated with menu shortcuts"/>
+      <entry name="shift" value="1" summary="Shift key"/>
+      <entry name="option" value="2" summary="Option / Alt key"/>
+      <entry name="command" value="4" summary="Command / Meta key"/>
+      <entry name="control" value="8" summary="Control key"/>
+    </enum>
+
+    <request name="destroy" type="destructor">
+      <description summary="Unregister and destroy this menu"/>
+    </request>
+
+    <request name="begin_menu_definition">
+      <description summary="Begin atomic transaction updating menu layout">
+        Clients call this before issuing menu item declarations.
+      </description>
+      <arg name="generation" type="uint" summary="Monotonically increasing layout sequence number"/>
+    </request>
+
+    <request name="add_top_menu">
+      <description summary="Add top-level category menu">
+        Appends a top-level category (e.g. File, Edit, View, Window, Help) to the bar.
+      </description>
+      <arg name="menu_id" type="uint" summary="Unique integer ID for this menu"/>
+      <arg name="label" type="string" summary="Visible menu label"/>
+    </request>
+
+    <request name="add_menu_item">
+      <description summary="Add standard menu item to a category or submenu">
+        Registers an individual clickable action item.
+      </description>
+      <arg name="parent_id" type="uint" summary="Parent menu ID or submenu ID"/>
+      <arg name="item_id" type="uint" summary="Unique action identifier"/>
+      <arg name="label" type="string" summary="Default action label"/>
+      <arg name="shortcut_key" type="string" summary="Key symbol string (e.g. 'W', 'Q', 'Z', 'C')"/>
+      <arg name="shortcut_modifiers" type="uint" enum="modifier_mask" summary="Modifier mask"/>
+      <arg name="flags" type="uint" enum="item_state_flags" summary="Initial item flags"/>
+    </request>
+
+    <request name="add_option_variant">
+      <description summary="Register an Option-key mutation for an existing item">
+        When the user presses Option, the item with target_item_id dynamically mutates
+        its label and accelerator to alt_label and alt_modifiers.
+      </description>
+      <arg name="target_item_id" type="uint" summary="Target menu item to mutate"/>
+      <arg name="alt_label" type="string" summary="Label shown when Option is depressed (e.g. 'Close All')"/>
+      <arg name="alt_shortcut_modifiers" type="uint" enum="modifier_mask" summary="Modifiers shown when Option is held"/>
+    </request>
+
+    <request name="update_window_list">
+      <description summary="Synchronize app windows in the 'Window' menu footer">
+        Populates the Window menu with active surfaces. The compositor places
+        a checkmark next to the focused window and diamonds next to minimized windows.
+      </description>
+      <arg name="window_id" type="uint" summary="Compositor window identifier"/>
+      <arg name="title" type="string" summary="Window title text"/>
+      <arg name="is_focused" type="uint" summary="1 if currently focused, 0 otherwise"/>
+      <arg name="is_minimized" type="uint" summary="1 if currently minimized, 0 otherwise"/>
+    </request>
+
+    <request name="commit_menu_definition">
+      <description summary="Commit and render updated menu structure">
+        Finalizes menu structure and activates it on the Top Menu Bar.
+      </description>
+      <arg name="generation" type="uint" summary="Matching generation sequence number"/>
+    </request>
+
+    <request name="report_help_search_results">
+      <description summary="Send Help menu search match back to the compositor">
+        When the user types in the Help menu search box, the client searches its
+        menu hierarchy and reports matched items for visual guidance.
+      </description>
+      <arg name="query" type="string" summary="Search string"/>
+      <arg name="matched_item_id" type="uint" summary="Best match action ID"/>
+      <arg name="menu_path" type="string" summary="Breadcrumb path (e.g. 'File > Export > PDF...')"/>
+    </request>
+
+    <!-- Events from Menu Bar Compositor Daemon to Client -->
+    <event name="item_activated">
+      <description summary="Menu item was selected by user">
+        Fired after the 120ms double-flash animation on item selection.
+      </description>
+      <arg name="item_id" type="uint" summary="Activated item identifier"/>
+      <arg name="modifiers" type="uint" enum="modifier_mask" summary="Modifiers held at activation"/>
+    </event>
+
+    <event name="option_modifier_changed">
+      <description summary="Compositor notifies client of Option key transition">
+        Notifies client that Option key was pressed (1) or released (0) while
+        a menu was open.
+      </description>
+      <arg name="option_down" type="uint" summary="1 if held, 0 if released"/>
+    </event>
+
+    <event name="help_search_query">
+      <description summary="User typed into the Help menu search bar">
+        Prompts the application to search its menu command tree.
+      </description>
+      <arg name="query" type="string" summary="Current query substring"/>
+    </event>
+
+    <event name="highlight_menu_item">
+      <description summary="Target menu item found for Help search guidance">
+        Sent by the Help Rector to automatically unfold submenus and point the
+        animated floating blue arrow at the designated item.
+      </description>
+      <arg name="item_id" type="uint" summary="Item to point to with the floating arrow"/>
+      <arg name="screen_x" type="int" summary="Item screen X coordinate"/>
+      <arg name="screen_y" type="int" summary="Item screen Y coordinate"/>
+      <arg name="item_width" type="uint" summary="Item width for arrow offset calculation"/>
+      <arg name="item_height" type="uint" summary="Item height"/>
+    </event>
+  </interface>
+</protocol>
