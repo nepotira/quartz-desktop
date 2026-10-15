@@ -7,6 +7,27 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.12.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-settings` (Fase 12 - Aplicativo Ajustes do Sistema Tahoe 26: Barra Lateral de Vidro Flutuante, Busca em Tempo Real e Painéis Canônicos)**:
+  - **Barra Lateral Flutuante Liquid Glass e Motor de Busca (`src/sidebar.rs`)**:
+    - **5 Seções Hierárquicas Canônicas**: Conectividade (Wi-Fi, Bluetooth, Rede), Notificações e Som, Sistema Principal (Geral, Aparência, Acessibilidade), Espaço de Trabalho (Mesa e Dock, Telas, Papel de Parede, Protetor de Tela) e Hardware e Segurança (Bateria, Teclado, Trackpad, Bloqueio de Tela, Touch ID e Senhas).
+    - **Motor de Busca Sub-Milissegundo**: Indexação instantânea de títulos de seções, descrições e sinônimos profundos (ex: busca por "120hz" ou "vrr" direciona para Telas; "genie" direciona para Mesa e Dock; "basso" direciona para Som; "m4" direciona para Geral).
+    - **Cartão de Perfil de Usuário**: Cabeçalho de perfil Apple Account / QuartzID com avatar, nome de exibição e estado de sincronização em nuvem.
+  - **Painéis de Configuração Completos (`src/panels/`)**:
+    - **Aparência (`appearance.rs`)**: Modos Claro, Escuro e Automático com ciclo solar; 8 cores de destaque de Cupertino (`Azul #007AFF`, `Roxo #AF52DE`, `Rosa #FF2D55`, `Vermelho #FF3B30`, `Laranja #FF9500`, `Amarelo #FFCC00`, `Verde #34C759`, `Grafite #8E8E93` e `Multicor`); e controle de matiz de papel de parede em janelas Liquid Glass.
+    - **Telas (`displays.rs`)**: Modos de escala Retina (`Texto Maior`, `Padrão @2x`, `Mais Espaço`); opções de taxa de atualização (`ProMotion 120Hz` VRR dinâmico de 10Hz a 120Hz, 60Hz, 50Hz, 48Hz); agendamento de Night Shift com temperatura de cor e True Tone adaptativo.
+    - **Mesa e Dock (`dock_desktop.rs`)**: Sliders de tamanho de ícones e ampliação parabólica com hover; posições (Inferior, Esquerda, Direita); efeito de minimização Genie (malha 64x64) ou Escala; alternador de Stage Manager com visualização de itens da mesa; e configuração de 4 Cantos de Acesso (Hot Corners).
+    - **Som (`sound.rs`)**: Volume mestre com curva cúbica decibel, balanço estéreo, tons de alerta canônicos (`Sosumi`, `Basso`, `Ping`, `Funk`, `Hero`, `Tink`) e alternador de auto-pause CoreAudio para fones de ouvido.
+    - **Bateria e Economia de Energia (`battery.rs`)**: Políticas de ativação de Modo de Baixo Consumo (Nunca, Sempre, Apenas na Bateria, Apenas no Adaptador); telemetria de saúde da bateria (porcentagem de capacidade máxima e contagem de ciclos); e carregamento otimizado a 80%.
+    - **Teclado e Trackpad (`keyboard_trackpad.rs`)**: Calibração de taxa de repetição de teclas (10Hz–60Hz) e atraso inicial (150ms–600ms); ativação do menu popover de acentos ao segurar tecla (>300ms); atalho de ditado por voz; velocidade de rastreamento do trackpad, rolagem natural e gestos multi-toque 1:1.
+    - **Geral e Sobre Este Mac (`general.rs`)**: Telemetria completa do hardware (especificações do chip M4 Max, memória unificada, número de série, build do sistema); gráfico segmentado de utilização de armazenamento (Aplicativos, Desenvolvedor, Sistema, Documentos); e visibilidade do AirDrop.
+  - **Controlador de Janela com Histórico de Navegação (`src/window.rs`)**:
+    - Layout de dois painéis em Liquid Glass com pilha de histórico (Voltar / Avançar) preservando o estado de navegação.
+
+---
+
 ## [0.11.0-alpha.1] - 2026-10-15
 
 ### Added
