@@ -1,0 +1,19 @@
+[package]
+name = "gtk-quartz-module"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "macOS Tahoe 26 GTK3/GTK4/Libadwaita Integration Module (Traffic Lights, Floating Glass Sidebar, Cocoa Styling)"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }

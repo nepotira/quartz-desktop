@@ -7,6 +7,26 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.17.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `gtk-quartz-module` (Fase 17 - Módulo de Compatibilidade GTK3/GTK4/Libadwaita: Luzes de Tráfego, Barra Lateral Floating Glass e Estilização Cocoa)**:
+  - **Decoração CSD e Luzes de Tráfego Canônicas (`src/decorations.rs`)**:
+    - Forçamento do layout `gtk-decoration-layout` para `"close,minimize,maximize:"` alinhado à esquerda no padrão macOS.
+    - Especificação de cores exatas de Cupertino para botões de Fechar (`#FF5F56`), Minimizar (`#FFBD2E`) e Maximizar/Zoom (`#27C93F`), com glifos interativos ao passar o cursor (`✕`, `−`, `+`) e desaturação suave no estado inativo.
+    - Centralização geométrica do título da janela na Headerbar compensando assimetria entre botões de ação à esquerda e à direita.
+  - **Motor Gerador de CSS Dinâmico Tahoe 26 (`src/css.rs`)**:
+    - Geração de folhas de estilo completas para GTK3 e GTK4/Libadwaita com suporte a modos Claro e Escuro.
+    - Injeção dinâmica da cor de destaque do usuário (`@define-color accent_color`).
+    - Barra lateral flutuante de vidro translúcido (`.sidebar`, `splitview > navigation`, `navigation-sidebar`) com `backdrop-filter: blur(20px)` e pílulas arredondadas de seleção ativa.
+    - Botões e controles com curvatura Squircle $G^2$, borda especular superior e depressão física ao clique.
+    - Campos de texto com anéis de foco resplandecentes em azul Cupertino (`box-shadow: 0 0 0 3px alpha(@accent_color, 0.35)`).
+    - Barras de rolagem sobrepostas minimalistas estilo macOS (ocultas quando ociosas, pílula arredondada sem setas ao rolar).
+  - **Pontos de Entrada C-ABI FFI (`src/lib.rs`)**:
+    - Exportação de `gtk_module_init` e `gtk_module_display_init` sob `#[unsafe(no_mangle)]` para carregamento via `GTK_MODULES` e `LD_PRELOAD`.
+
+---
+
 ## [0.16.0-alpha.1] - 2026-10-15
 
 ### Added

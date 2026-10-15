@@ -17,8 +17,7 @@ members = [
     "crates/apps/qz-activity-monitor",
     "crates/apps/qz-terminal",
     "compat/xdg-desktop-portal-quartz",
-    # Planned workspace crates added in subsequent phases:
-    # "compat/gtk-quartz-module",
+    "compat/gtk-quartz-module",
 ]
 
 [workspace.package]
