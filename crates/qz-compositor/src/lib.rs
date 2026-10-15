@@ -13,6 +13,7 @@ pub mod gestures;
 pub mod input;
 pub mod retina;
 pub mod spaces;
+pub mod tiling;
 pub mod vrr;
 
 pub use gestures::{GestureEngine, GesturePhase, TrackpadGesture};
@@ -25,4 +26,5 @@ pub use spaces::{
     HotCornerAction, PipCorner, PipController, ScreenCorner, Space, SpaceKind,
     SpacesCoordinator, StageManagerGroup,
 };
+pub use tiling::{TilingGeometry, TilingLayoutManager, TilingOption, TAHOE_TILING_MARGIN};
 pub use vrr::{FramePaceMode, ProMotionScheduler};

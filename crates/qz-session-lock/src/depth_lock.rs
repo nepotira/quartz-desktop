@@ -10,9 +10,10 @@
 //!   If more than 35% of the clock surface is occluded by the foreground subject, depth masking
 //!   is gracefully disabled to preserve typography legibility.
 //! - **Damped Harmonic Oscillator Password Shake:** Modeled after macOS's canonical password error
-//!   shake using an analytical damped sinusoidal oscillator:
-//!   $$x(t) = A \cdot e^{-\gamma t} \cos(\omega t)$$
-//!   with initial amplitude $A = 24.0\text{px}$, damping $\gamma = 12.0$, and frequency $\omega = 45.0\text{ rad/s}$.
+//!   shake using the Tahoe 26 analytical damped sinusoidal oscillator:
+//!   $$\Delta x(t) = 14 \cdot e^{-8t} \cdot \sin(38t)$$
+//!   with initial amplitude $A = 14.0\text{px}$, damping $\gamma = 8.0$, and angular frequency $\omega = 38.0\text{ rad/s}$
+//!   completing 4 damped cycles across $\approx 0.45\text{s}$.
 //! - **Adaptive Luminance Tinting:** Dynamically selects between light glass, dark graphite,
 //!   or chromatic accent palettes based on average wallpaper luminance behind the clock.
 
@@ -270,18 +271,18 @@ impl DepthLockScreen {
             *elapsed_seconds += dt;
             let t = *elapsed_seconds;
 
-            // Analytical Damped Harmonic Oscillator:
-            // x(t) = A * exp(-gamma * t) * cos(omega * t)
-            let amplitude = 24.0;   // 24px initial displacement
-            let gamma = 12.0;       // Damping factor
-            let omega = 45.0;       // ~7.16 Hz vibration frequency
+            // Canonical macOS Tahoe 26 Damped Harmonic Oscillator:
+            // Delta x(t) = 14 * exp(-8 * t) * sin(38 * t)
+            let amplitude = 14.0;   // 14px amplitude
+            let gamma = 8.0;        // Damping factor
+            let omega = 38.0;       // ~6.05 Hz angular frequency
 
             let decay = (-gamma * t).exp();
-            let offset = amplitude * decay * (omega * t).cos();
+            let offset = amplitude * decay * (omega * t).sin();
             self.password_shake_offset_x = offset;
 
-            // Shake ends when time reaches 0.45s or decay drops offset below 0.2px
-            if t >= 0.45 || (offset.abs() < 0.2 && t > 0.3) {
+            // Shake ends when time reaches 0.45s or decay drops offset below 0.1px
+            if t >= 0.45 || (offset.abs() < 0.1 && t > 0.35) {
                 let count = *failed_count;
                 self.password_shake_offset_x = 0.0;
                 self.password_buffer.clear();

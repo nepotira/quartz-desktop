@@ -144,6 +144,31 @@ impl SettingsWindow {
     pub fn window_title(&self) -> String {
         format!("Ajustes do Sistema — {}", self.active_category().title())
     }
+
+    /// Bounding rectangle $[x, y, w, h]$ for the Floating Glass Pill Sidebar with 8px margins.
+    #[must_use]
+    pub fn sidebar_pill_bounds(&self) -> (f64, f64, f64, f64) {
+        let margin = 8.0;
+        let pill_w = 244.0;
+        let pill_h = (self.size.y as f64 - 2.0 * margin).max(100.0);
+        (margin, margin, pill_w, pill_h)
+    }
+
+    /// Usable bounds $[x, y, w, h]$ for the right content pane scrolling underneath the sidebar glass.
+    #[must_use]
+    pub fn content_pane_bounds(&self) -> (f64, f64, f64, f64) {
+        let left_offset = 260.0; // 8px margin + 244px pill + 8px gap
+        let content_w = (self.size.x as f64 - left_offset).max(100.0);
+        let content_h = self.size.y as f64;
+        (left_offset, 0.0, content_w, content_h)
+    }
+
+    /// Evaluates if a point $[x, y]$ in local window coordinates is over the floating sidebar pill.
+    #[must_use]
+    pub fn is_point_over_sidebar_pill(&self, local_x: f64, local_y: f64) -> bool {
+        let (bx, by, bw, bh) = self.sidebar_pill_bounds();
+        local_x >= bx && local_x <= (bx + bw) && local_y >= by && local_y <= (by + bh)
+    }
 }
 
 #[cfg(test)]
@@ -189,5 +214,21 @@ mod tests {
 
         win.navigate_to(SettingsCategory::Displays);
         assert_eq!(win.window_title(), "Ajustes do Sistema — Telas");
+    }
+
+    #[test]
+    fn test_sidebar_pill_geometry() {
+        let win = SettingsWindow::default();
+        let (bx, by, bw, bh) = win.sidebar_pill_bounds();
+        assert_eq!((bx, by, bw), (8.0, 8.0, 244.0));
+        assert_eq!(bh, 680.0 - 16.0);
+
+        let (cx, cy, cw, ch) = win.content_pane_bounds();
+        assert_eq!((cx, cy), (260.0, 0.0));
+        assert_eq!(cw, 960.0 - 260.0);
+        assert_eq!(ch, 680.0);
+
+        assert!(win.is_point_over_sidebar_pill(50.0, 50.0));
+        assert!(!win.is_point_over_sidebar_pill(300.0, 50.0));
     }
 }

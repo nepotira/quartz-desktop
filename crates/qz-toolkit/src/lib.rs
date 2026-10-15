@@ -39,8 +39,8 @@ pub use sheets::{ModalSheet, SheetAction, SheetState};
 pub use tabs::{NativeTabBar, TabDragState, TabItem};
 pub use text::{CocoaTextEngine, FontMetrics, LayoutLine, TextClippingMode};
 pub use widgets::{
-    GlassButton, GlassSegmentedControl, GlassToggle, InteractionState, LiquidGlassMaterial,
-    Squircle,
+    FloatingGlassPill, GlassButton, GlassSegmentedControl, GlassToggle, InteractionState,
+    LiquidGlassMaterial, Squircle,
 };
 
 use glam::Vec4;

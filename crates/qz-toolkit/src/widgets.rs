@@ -365,6 +365,76 @@ impl GlassToggle {
     }
 }
 
+/// Floating Glass Pill Sidebar specification for macOS Tahoe 26.
+///
+/// Rather than an opaque, fixed division glued to the left edge of the window frame,
+/// Tahoe 26 sidebars are independent floating glass pills inset by 8px (top, bottom, left)
+/// with a continuous G2 squircle silhouette and refractive Liquid Glass material.
+/// Content panes scroll underneath this pill with backdrop blur.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FloatingGlassPill {
+    /// Inset padding margin from window top, bottom, and left borders (canonical 8.0px).
+    pub inset_margin: f64,
+    /// Pill width in logical pixels (default 244.0px, giving 260px total column width).
+    pub width: f64,
+    /// Corner radius of the G2 squircle pill (canonical 12.0px).
+    pub corner_radius: f64,
+    /// Physical optical material parameters.
+    pub material: LiquidGlassMaterial,
+    /// Shadow blur radius sigma (10.0px).
+    pub shadow_sigma: f64,
+    /// Shadow vertical offset Delta y (4.0px).
+    pub shadow_offset_y: f64,
+    /// Shadow opacity alpha (0.22).
+    pub shadow_alpha: f32,
+}
+
+impl Default for FloatingGlassPill {
+    fn default() -> Self {
+        Self::new(244.0)
+    }
+}
+
+impl FloatingGlassPill {
+    /// Canonical 8.0px inset margin in macOS Tahoe 26.
+    pub const CANONICAL_INSET: f64 = 8.0;
+
+    /// Creates a new floating glass sidebar pill with specified width.
+    #[must_use]
+    pub fn new(width: f64) -> Self {
+        Self {
+            inset_margin: Self::CANONICAL_INSET,
+            width,
+            corner_radius: 12.0,
+            material: LiquidGlassMaterial::default(),
+            shadow_sigma: 10.0,
+            shadow_offset_y: 4.0,
+            shadow_alpha: 0.22,
+        }
+    }
+
+    /// Computes squircle geometry for the floating pill within window dimensions $[W, H]$.
+    #[must_use]
+    pub fn compute_pill_bounds(&self, window_width: f64, window_height: f64) -> Squircle {
+        let m = self.inset_margin;
+        let h = (window_height - 2.0 * m).max(100.0);
+        let w = self.width.min(window_width - 2.0 * m).max(80.0);
+        Squircle::new(m, m, w, h, self.corner_radius)
+    }
+
+    /// Evaluates if a point $[px, py]$ in window local space falls over the floating pill.
+    #[must_use]
+    pub fn contains_point(&self, window_width: f64, window_height: f64, px: f64, py: f64) -> bool {
+        self.compute_pill_bounds(window_width, window_height).contains_point(px, py)
+    }
+
+    /// Computes the usable content area offset where main window views can scroll underneath.
+    #[must_use]
+    pub fn content_left_inset(&self) -> f64 {
+        self.inset_margin + self.width + self.inset_margin
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -453,5 +523,24 @@ mod tests {
         }
         let on_x = toggle.thumb_x();
         assert!(on_x > off_x);
+    }
+
+    #[test]
+    fn test_floating_glass_pill_insets() {
+        let pill = FloatingGlassPill::default();
+        assert_eq!(pill.inset_margin, 8.0);
+        assert_eq!(pill.width, 244.0);
+        assert_eq!(pill.content_left_inset(), 260.0);
+
+        let bounds = pill.compute_pill_bounds(960.0, 680.0);
+        assert_eq!(bounds.x, 8.0);
+        assert_eq!(bounds.y, 8.0);
+        assert_eq!(bounds.width, 244.0);
+        assert_eq!(bounds.height, 664.0);
+        assert_eq!(bounds.corner_radius, 12.0);
+
+        assert!(pill.contains_point(960.0, 680.0, 100.0, 100.0));
+        assert!(!pill.contains_point(960.0, 680.0, 4.0, 100.0));
+        assert!(!pill.contains_point(960.0, 680.0, 300.0, 100.0));
     }
 }

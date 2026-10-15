@@ -7,6 +7,28 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.19.0-alpha.1] - 2026-10-15
+
+### Fixed & Refactored (Auditoria Forense de Fidelidade Visual, Física e Cromática macOS Tahoe 26)
+- **Cores & Luzes de Tráfego (`compat/gtk-quartz-module`, `crates/qz-compositor`)**:
+  - Correção cromática exata dos semáforos: Fechar (`#FF5F56`, borda `#E0443E`, glifo `#4D0000`, dirty dot `#4A0002`), Minimizar (`#FFBD2E`, borda `#DEA123`, glifo `#995700`), Zoom/Fullscreen (`#27C93F`, borda `#1AAB29`, glifo `#006500` com alternância dinâmica para `+` ao pressionar `Option`).
+  - Iluminação conjunta em grupo ao passar o cursor sobre a caixa delimitadora dos 3 botões em janelas inativas, com desaturação translúcida monocromática no estado ocioso (`rgba(128, 128, 128, 0.24)` no Dark Mode / `rgba(0, 0, 0, 0.15)` no Light Mode).
+  - Escurecimento físico de luminância de 18% no botão pressionado durante o evento de mouse-down.
+- **Cinemática & Física do Dock (`crates/qz-animation`, `crates/qz-shell`)**:
+  - Adição do envelope de entrada e saída por mola analítica (`SpringParams::dock_hover_envelope()`, $m=1.0, k=420.0, c=40.0$) modulando suavemente a ampliação de ícones sem saltos pontuais.
+  - Atualização das métricas canônicas do Dock Tahoe 26: tamanho base $S_{\text{base}} = 64\text{px}$, tamanho máximo $S_{\text{max}} = 128\text{px}$, raio de alcance gaussiano $\sigma = 180\text{px}$.
+  - Adição de suporte universal à dilatação temporal Shift Slow-Motion ($0.15\times$, $k \to 0.0225 \cdot k, c \to 0.15 \cdot c$).
+- **Equação de Frustração na Lock Screen (`crates/qz-session-lock`)**:
+  - Correção da oscilação analítica de erro de senha para a equação canônica do macOS Tahoe 26: $\Delta x(t) = 14 \cdot e^{-8t} \cdot \sin(38t)$ (início suave contínuo em 0 com 4 ciclos de rejeição amortecida em $\approx 0.45\text{s}$).
+- **Menu Bar Double-Flash (`crates/qz-shell`)**:
+  - Implementação da máquina de estados `MenuFlashAnimation`: 2 ciclos de piscar/inversão em 120ms (0..30ms ativo, 30..60ms inativo, 60..90ms ativo, 90..120ms inativo) antes de despachar a ação e recolher o menu.
+- **Window Tiling Popover (`crates/qz-compositor`)**:
+  - Criação do módulo `tiling.rs` gerenciando o popover flutuante ativado após 500ms de hover sobre o botão verde: Tela Cheia, Dividir Esquerda/Direita, 4 Quadrantes, Preencher (Fill) e Centralizar (Center), com margens canônicas de 8px em relação às bordas e entre janelas adjacentes.
+- **Pílula de Vidro Flutuante (`crates/qz-toolkit`, `crates/apps/qz-settings`)**:
+  - Implementação de `FloatingGlassPill` com margens internas (`inset_margin = 8.0px`, top, bottom, left), raio Squircle $G^2$ de 12px e sombra analítica interna ($\sigma = 10\text{px}, \Delta y = 4\text{px}, \alpha = 0.22$) com conteúdo rolando por baixo com Liquid Glass backdrop blur.
+
+---
+
 ## [0.18.0-alpha.1] - 2026-10-15
 
 ### Added

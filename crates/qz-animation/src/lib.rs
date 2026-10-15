@@ -171,6 +171,36 @@ impl SpringParams {
             damping: 28.0,
         }
     }
+
+    /// Dock magnification hover envelope spring ($m = 1.0, k = 420.0, c = 40.0$).
+    ///
+    /// Smoothly interpolates the magnification factor $E(t) \in [0.0, 1.0]$ upon cursor entry/exit.
+    #[inline]
+    pub fn dock_hover_envelope() -> Self {
+        Self {
+            mass: 1.0,
+            stiffness: 420.0,
+            damping: 40.0,
+        }
+    }
+
+    /// Returns a new `SpringParams` dilated for macOS universal Shift slow-motion ($0.15\times$ speed).
+    ///
+    /// Preserves the damping ratio $\zeta$ while dilating the time scale by $1/0.15 \approx 6.67\times$:
+    /// $$k \to 0.0225 \cdot k, \quad c \to 0.15 \cdot c$$
+    #[must_use]
+    #[inline]
+    pub fn with_slow_motion(&self, is_slow: bool) -> Self {
+        if is_slow {
+            Self {
+                mass: self.mass,
+                stiffness: self.stiffness * 0.0225,
+                damping: self.damping * 0.15,
+            }
+        } else {
+            *self
+        }
+    }
 }
 
 /// Instantaneous dynamic state of a 1D spring system.
@@ -655,15 +685,34 @@ impl DockMagnifier {
         s_max: f64,
         radius: f64,
     ) -> Vec<(f64, f64)> {
+        Self::compute_layout_with_envelope(resting_centers, cursor_x, s_base, s_max, radius, 1.0)
+    }
+
+    /// Computes conservative horizontal displacements modulated by a temporal hover envelope $E \in [0.0, 1.0]$.
+    ///
+    /// The size of each icon is modulated by:
+    /// $$w_i = S_{\text{base}} + E \cdot (M(d_i) - S_{\text{base}})$$
+    pub fn compute_layout_with_envelope(
+        resting_centers: &[f64],
+        cursor_x: Option<f64>,
+        s_base: f64,
+        s_max: f64,
+        radius: f64,
+        envelope: f64,
+    ) -> Vec<(f64, f64)> {
         let n = resting_centers.len();
         if n == 0 {
             return Vec::new();
         }
 
+        let env = envelope.clamp(0.0, 1.0);
         let sizes: Vec<f64> = match cursor_x {
             Some(cx) => resting_centers
                 .iter()
-                .map(|&x| Self::magnified_size((x - cx).abs(), s_base, s_max, radius))
+                .map(|&x| {
+                    let m = Self::magnified_size((x - cx).abs(), s_base, s_max, radius);
+                    s_base + env * (m - s_base)
+                })
                 .collect(),
             None => vec![s_base; n],
         };
@@ -794,5 +843,45 @@ mod tests {
 
         assert!(detector.is_shaking());
         assert!(detector.current_scale() > 1.0);
+    }
+
+    #[test]
+    fn test_dock_hover_envelope_and_slow_motion() {
+        let envelope_params = SpringParams::dock_hover_envelope();
+        assert_eq!(envelope_params.mass, 1.0);
+        assert_eq!(envelope_params.stiffness, 420.0);
+        assert_eq!(envelope_params.damping, 40.0);
+
+        let slow = envelope_params.with_slow_motion(true);
+        assert!((slow.stiffness - 420.0 * 0.0225).abs() < 1e-4);
+        assert!((slow.damping - 40.0 * 0.15).abs() < 1e-4);
+
+        let normal = slow.with_slow_motion(false);
+        assert_eq!(normal, slow);
+
+        // Test layout with envelope 0.0 -> no magnification
+        let resting = vec![100.0, 164.0, 228.0, 292.0];
+        let layout_zero = DockMagnifier::compute_layout_with_envelope(
+            &resting,
+            Some(164.0),
+            64.0,
+            128.0,
+            180.0,
+            0.0,
+        );
+        for item in layout_zero {
+            assert_eq!(item.1, 64.0);
+        }
+
+        // Test layout with envelope 1.0 -> full magnification
+        let layout_full = DockMagnifier::compute_layout_with_envelope(
+            &resting,
+            Some(164.0),
+            64.0,
+            128.0,
+            180.0,
+            1.0,
+        );
+        assert!((layout_full[1].1 - 128.0).abs() < 1e-4);
     }
 }

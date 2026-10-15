@@ -109,6 +109,48 @@ impl MenuNode {
     }
 }
 
+/// State of a menu item undergoing the canonical macOS Tahoe 26 double-flash animation on click.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MenuFlashAnimation {
+    /// Action item ID being clicked.
+    pub item_id: u32,
+    /// Elapsed time of the flash animation in seconds.
+    pub elapsed_secs: f64,
+}
+
+impl MenuFlashAnimation {
+    /// Total duration of the double-flash sequence (120ms).
+    pub const TOTAL_DURATION_SECS: f64 = 0.120;
+    /// Duration of each half cycle (30ms).
+    pub const HALF_CYCLE_SECS: f64 = 0.030;
+
+    /// Creates a new flash animation for an item.
+    pub fn new(item_id: u32) -> Self {
+        Self {
+            item_id,
+            elapsed_secs: 0.0,
+        }
+    }
+
+    /// Advances the flash timer by `dt` seconds, returning `true` if finished.
+    pub fn step(&mut self, dt: f64) -> bool {
+        self.elapsed_secs += dt;
+        self.elapsed_secs >= Self::TOTAL_DURATION_SECS
+    }
+
+    /// Evaluates if the item should be visually drawn inverted/highlighted at current timestamp:
+    /// - Cycle 1: 0..30ms (highlighted), 30..60ms (unhighlighted)
+    /// - Cycle 2: 60..90ms (highlighted), 90..120ms (unhighlighted)
+    #[inline]
+    pub fn is_highlighted(&self) -> bool {
+        if self.elapsed_secs >= Self::TOTAL_DURATION_SECS {
+            return false;
+        }
+        let cycle = (self.elapsed_secs / Self::HALF_CYCLE_SECS).floor() as usize;
+        cycle % 2 == 0
+    }
+}
+
 /// Coordinates the Global Application Menu bar state.
 pub struct GlobalMenuManager {
     active_app_id: String,
@@ -117,6 +159,7 @@ pub struct GlobalMenuManager {
     window_entries: Vec<WindowMenuEntry>,
     is_option_down: bool,
     currently_open_menu_id: Option<u32>,
+    active_flash: Option<MenuFlashAnimation>,
 }
 
 impl Default for GlobalMenuManager {
@@ -135,6 +178,7 @@ impl GlobalMenuManager {
             window_entries: Vec::new(),
             is_option_down: false,
             currently_open_menu_id: None,
+            active_flash: None,
         }
     }
 
@@ -151,6 +195,7 @@ impl GlobalMenuManager {
             }
         }
         self.currently_open_menu_id = None;
+        self.active_flash = None;
     }
 
     /// Returns the application bold title displayed next to the Apple logo.
@@ -176,10 +221,47 @@ impl GlobalMenuManager {
 
     /// Implements 0ms lateral hover sliding between open menus.
     pub fn handle_header_hover(&mut self, menu_id: u32) {
-        if self.currently_open_menu_id.is_some() {
+        if self.currently_open_menu_id.is_some() && self.active_flash.is_none() {
             // Already in open-menu sliding mode: switch instantly (0ms delay)
             self.currently_open_menu_id = Some(menu_id);
         }
+    }
+
+    /// Triggers double-flash animation on item click before action dispatch.
+    pub fn trigger_item_click(&mut self, item_id: u32) {
+        self.active_flash = Some(MenuFlashAnimation::new(item_id));
+    }
+
+    /// Advances the menu animation clock by `dt` seconds.
+    ///
+    /// When the 120ms double-flash finishes, automatically dismisses the open menu
+    /// and returns `Some(action_id)` for immediate execution.
+    pub fn tick(&mut self, dt: f64) -> Option<u32> {
+        if let Some(mut flash) = self.active_flash {
+            let finished = flash.step(dt);
+            if finished {
+                let id = flash.item_id;
+                self.active_flash = None;
+                self.currently_open_menu_id = None;
+                Some(id)
+            } else {
+                self.active_flash = Some(flash);
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Checks if a menu item is currently undergoing double-flash highlight.
+    #[inline]
+    pub fn is_item_highlighted_flash(&self, item_id: u32) -> bool {
+        if let Some(flash) = self.active_flash {
+            if flash.item_id == item_id {
+                return flash.is_highlighted();
+            }
+        }
+        false
     }
 
     /// Searches the menu tree for the Help Search Rector and returns breadcrumb and match.
@@ -259,5 +341,32 @@ mod tests {
         assert_eq!(matches[0].item_id, 11);
         assert!(matches[0].breadcrumb_path.contains("File"));
         assert!(matches[0].breadcrumb_path.contains("PDF"));
+    }
+
+    #[test]
+    fn test_menu_item_double_flash() {
+        let mut manager = GlobalMenuManager::new();
+        manager.trigger_item_click(42);
+
+        // At 15ms: Cycle 1 Highlighted
+        manager.tick(0.015);
+        assert!(manager.is_item_highlighted_flash(42));
+
+        // At 45ms: Cycle 1 Unhighlighted
+        manager.tick(0.030);
+        assert!(!manager.is_item_highlighted_flash(42));
+
+        // At 75ms: Cycle 2 Highlighted
+        manager.tick(0.030);
+        assert!(manager.is_item_highlighted_flash(42));
+
+        // At 105ms: Cycle 2 Unhighlighted
+        manager.tick(0.030);
+        assert!(!manager.is_item_highlighted_flash(42));
+
+        // At 125ms: Completed! Returns Some(42)
+        let dispatched = manager.tick(0.020);
+        assert_eq!(dispatched, Some(42));
+        assert!(!manager.is_item_highlighted_flash(42));
     }
 }

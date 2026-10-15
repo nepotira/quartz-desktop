@@ -174,6 +174,8 @@ pub struct DockCoordinator {
     max_magnified_size: f64,
     magnification_radius: f64,
     is_magnification_enabled: bool,
+    hover_envelope: SpringAnimation,
+    current_cursor_x: Option<f64>,
 }
 
 impl Default for DockCoordinator {
@@ -197,11 +199,37 @@ impl DockCoordinator {
             recent_apps: VecDeque::with_capacity(3),
             stacks: Vec::new(),
             trash_mode: TrashMode::EmptyTrash,
-            base_size: 48.0,
-            max_magnified_size: 96.0,
-            magnification_radius: 160.0,
+            base_size: 64.0,              // Tahoe 26 canonical 64px base size
+            max_magnified_size: 128.0,     // 128px maximum magnification
+            magnification_radius: 180.0,   // Gaussian/cosine reach sigma = 180px
             is_magnification_enabled: true,
+            hover_envelope: SpringAnimation::new(SpringParams::dock_hover_envelope(), 0.0, 0.0, 0.0),
+            current_cursor_x: None,
         }
+    }
+
+    /// Advances the Dock physics, hover envelope, and stack springs by `dt` seconds.
+    pub fn tick(&mut self, dt: f64) {
+        self.hover_envelope.step(dt);
+        for app in &mut self.pinned_apps {
+            app.bounce_spring.step(dt);
+        }
+        for stack in &mut self.stacks {
+            stack.expansion_spring.step(dt);
+        }
+    }
+
+    /// Ingests cursor coordinate updates, retargeting the hover envelope spring ($0.0 \leftrightarrow 1.0$).
+    pub fn update_cursor_hover(&mut self, cursor_x: Option<f64>) {
+        self.current_cursor_x = cursor_x;
+        let target = if cursor_x.is_some() { 1.0 } else { 0.0 };
+        self.hover_envelope.retarget(target);
+    }
+
+    /// Current hover envelope expansion ratio $E(t) \in [0.0, 1.0]$.
+    #[inline]
+    pub fn current_envelope(&self) -> f64 {
+        self.hover_envelope.sample_at(self.hover_envelope.elapsed_time()).position.clamp(0.0, 1.0)
     }
 
     /// Sets base icon size, optionally snapping to canonical sizes if Option is held.
@@ -213,7 +241,7 @@ impl DockCoordinator {
                 .iter()
                 .min_by(|a, b| (clamped - **a).abs().partial_cmp(&(clamped - **b).abs()).unwrap())
                 .copied()
-                .unwrap_or(48.0);
+                .unwrap_or(64.0);
             self.base_size = nearest;
         } else {
             self.base_size = clamped;
@@ -243,7 +271,7 @@ impl DockCoordinator {
         self.base_size
     }
 
-    /// Computes full magnified horizontal layout for all items in the Dock given cursor X.
+    /// Computes full magnified horizontal layout for all items in the Dock modulated by the hover envelope.
     pub fn compute_magnified_layout(&self, cursor_x: Option<f64>) -> Vec<(f64, f64)> {
         let count = self.pinned_apps.len() + self.recent_apps.len() + self.stacks.len() + 1; // +1 for Trash
         let mut resting_centers = Vec::with_capacity(count);
@@ -260,12 +288,14 @@ impl DockCoordinator {
             return resting_centers.into_iter().map(|cx| (cx, self.base_size)).collect();
         }
 
-        DockMagnifier::compute_layout(
+        let envelope = self.current_envelope();
+        DockMagnifier::compute_layout_with_envelope(
             &resting_centers,
             cursor_x,
             self.base_size,
             self.max_magnified_size,
             self.magnification_radius,
+            envelope,
         )
     }
 }
@@ -329,5 +359,29 @@ mod tests {
             .collect();
         let stack_many = DockStack::new("/imgs", "Images", StackViewMode::Automatic, items_many);
         assert_eq!(stack_many.effective_view_mode(), StackViewMode::Grid);
+    }
+
+    #[test]
+    fn test_dock_hover_envelope_progression() {
+        let mut dock = DockCoordinator::new();
+        assert_eq!(dock.current_envelope(), 0.0);
+
+        // Enter Dock with cursor
+        dock.update_cursor_hover(Some(100.0));
+        assert_eq!(dock.current_envelope(), 0.0);
+
+        // Advance simulation
+        dock.tick(0.1);
+        let env = dock.current_envelope();
+        assert!(env > 0.0 && env <= 1.0);
+
+        // Advance to equilibrium
+        dock.tick(1.0);
+        assert!((dock.current_envelope() - 1.0).abs() < 0.05);
+
+        // Exit Dock
+        dock.update_cursor_hover(None);
+        dock.tick(1.0);
+        assert!(dock.current_envelope() < 0.05);
     }
 }

@@ -67,6 +67,7 @@ mod tests {
         assert_eq!(min_info.hover_glyph, "−");
 
         let max_info = TrafficLightKind::Maximize.colors();
-        assert_eq!(max_info.hover_glyph, "+");
+        assert_eq!(max_info.hover_glyph, "⤢");
+        assert_eq!(max_info.option_hover_glyph, "+");
     }
 }
