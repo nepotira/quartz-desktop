@@ -598,6 +598,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "qz-terminal"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glam",
+ "qz-animation",
+ "qz-renderer",
+ "qz-toolkit",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "qz-toolkit"
 version = "0.1.0"
 dependencies = [

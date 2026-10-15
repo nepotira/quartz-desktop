@@ -15,8 +15,8 @@ members = [
     "crates/apps/qz-settings",
     "crates/apps/qz-preview",
     "crates/apps/qz-activity-monitor",
+    "crates/apps/qz-terminal",
     # Planned workspace crates added in subsequent phases:
-    # "crates/apps/qz-terminal",
     # "compat/xdg-desktop-portal-quartz",
     # "compat/gtk-quartz-module",
 ]
