@@ -7,6 +7,31 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.20.1-alpha.1] - 2026-10-15
+
+### Fixed & Enhanced (Intervenção Cirúrgica de Fidelidade Visual — macOS Tahoe 26)
+- **Liquid Glass com Desfoque Pesado Multi-Estágio ($\sigma \ge 42\text{px}$)**:
+  - Substituição da transparência simples por um pipeline de difusão em cascata multi-resolução ($1/4 \to 1/16 \to 1/32$) com interpolação bicúbica/bilinear e difusão de 5 taps na CPU (Cairo), e amostragem espiral Vogel Disk (64 taps, raio de 42px com Golden Angle e rotação estocástica por Interleaved Gradient Noise) no GLSL.
+  - Eliminação total de linhas e detalhes nítidos do papel de parede atrás da Floating Pill Sidebar, Top Menu Bar e Dock.
+- **Floating Glass Pill Sidebar (macOS Tahoe 26)**:
+  - Descolamento integral da barra lateral em relação às bordas da janela com margens uniformes de 10px (`x = win.x + 10, y = win.y + 10, w = 200, h = win.h - 20`), cantos squircle $R = 12\text{px}$ nos 4 lados e sombra independente suave.
+  - Semáforos posicionados internamente na pílula flutuante em `(sb_x + 16, sb_y + 16)`.
+  - Remoção definitiva da linha divisória vertical reta clássica, garantindo o visual flutuante autêntico do Tahoe 26.
+- **Seleção Bipartida Canônica no Finder**:
+  - Separação estrita da seleção no modo Ícones: quadrado arredondado cinza translúcido `rgba(255, 255, 255, 0.12)` ($84 \times 84\text{px}$, $R = 8\text{px}$) ao redor do ícone da pasta, e pílula justa sólida em azul macOS `#0A60FF` com cantos $R = 4\text{px}$ ao redor do rótulo textual com texto branco em negrito.
+- **Geometria Exata da Pasta macOS (Transição em Curva S Contínua)**:
+  - Transição contínua da aba traseira usando função `smoothstep` (de $x = 0.34$ a $0.48$), aba traseira em `#228BE6`, capa frontal com gradiente celestial (`#72D6FF` $\to$ `#127DFA`), chanfro especular superior em $y = 0.286$, sombra interna de oclusão de contato e dois vincos horizontais na base.
+- **Artes Vetoriais 3D dos Ícones do Dock e Bateria Canônica**:
+  - **Finder**: Face 3D bicolor com divisão sinoidal do nariz, pílulas verticais para os olhos, chanfro especular superior e sorriso curvo contínuo.
+  - **Safari**: Mostrador radial azul royal, graduação com 36 marcas polares, agulha facetada 3D inclinada a -45° (face vermelha a nordeste e face branca a sudoeste com sombra projetada da agulha).
+  - **Lixeira**: Cilindro de alumínio anodizado 3D trapezoidal com base curva, aro superior elíptico, reflexo anisotrópico e nervuras verticais.
+  - **Ajustes**: Engrenagem chanfrada de 12 dentes suavizados, 3 raios internos e miolo metálico com reflexo cônico.
+  - **Bateria da Menu Bar**: Texto de porcentagem "100%" posicionado rigorosamente à esquerda da bateria; corpo em $22 \times 11\text{px}$ com contorno cinza a 45%, terminal positivo saliente e preenchimento sólido em branco puro `#FFFFFF` (zero verde neon).
+- **Botões da Toolbar com Rest State Sutis**:
+  - Eliminação de bordas duras de 1px tipo HTML nos botões `<` `>`, seletor agrupado e barra de busca; aplicação de fundo sutil `rgba(255, 255, 255, 0.06)` e borda suave `rgba(255, 255, 255, 0.08)` com $R = 6\text{px}$.
+
+---
+
 ## [0.20.0-alpha.1] - 2026-10-15
 
 ### Fixed & Rewritten (Intervenção de Emergência Gráfica — Reescrita 100% Procedural e Liquid Glass Real)
