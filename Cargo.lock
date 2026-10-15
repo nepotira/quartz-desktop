@@ -469,6 +469,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "qz-spotlight"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glam",
+ "qz-animation",
+ "qz-renderer",
+ "qz-shell",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"

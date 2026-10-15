@@ -7,6 +7,32 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.5.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-spotlight` (Fase 5 - Spotlight Launcher de 4 Modos do macOS Tahoe 26)**:
+  - **Modo 1: Busca Universal & Motores de Avaliação em Tempo Real (`src/search/`)**:
+    - **Calculadora Científica com Pratt Parser (`calc.rs`)**: Avaliador sintático de precedência por binding power suportando exponenciação associativa à direita (`^`), funções trigonométricas/hiperbólicas/logarítmicas (`sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `sqrt`, `cbrt`, `log`, `ln`, `abs`, `exp`), notação científica e constantes matemáticas canônicas ($\pi$, $e$, $\tau$, $\phi$).
+    - **Conversor de Unidades & Moedas em Linguagem Natural (`converter.rs`)**: Conversão direta entre unidades de Comprimento (m, km, cm, mm, in, ft, yd, mi), Massa (kg, g, mg, lb, oz, ton), Temperatura (°C, °F, K), Armazenamento Digital decimal e binário (B, KB, MB, GB, TB, KiB, MiB, GiB, TiB), Tempo e Cotações Monetárias (USD, EUR, GBP, JPY, BRL, CAD, AUD, CHF, CNY).
+    - **Indexador e Busca OCR (`ocr.rs`)**: Mapeamento de texto reconhecido em documentos escaneados, capturas de tela e PDFs com caixas delimitadoras normalizadas ($[x, y, w, h]$), pontuação de confiança e extração contextual de trechos em tempo real.
+    - **Motor de Busca Universal (`engine.rs`)**: Agregação instantânea de aplicativos, preferências de sistema, documentos e contatos, priorizando cartões de cálculo e conversão com algoritmo de ranqueamento fuzzy em 4 camadas (correspondência exata, prefixo, limite de palavra e subsequência) acrescido de impulso por frequência de uso.
+  - **Modo 2: Ações de Sistema e Executor de Menus de Aplicação (`src/actions/`)**:
+    - **Registro de Ações do Sistema (`system_actions.rs`)**: Acionamento direto de Repouso, Reinicialização, Desligamento, Bloqueio de Sessão (`⌃⌘Q`), Encerramento de Sessão (`⇧⌘Q`), Esvaziar Lixeira (`⇧⌘⌫`), Modo Escuro/Claro, rádios Wi-Fi e Bluetooth, Economia de Energia, Night Shift, Capturas de Tela (`⇧⌘3`, `⇧⌘4`, `⇧⌘5`), Monitor de Atividade e Forçar Encerramento (`⌥⌘⎋`).
+    - **Executor de Menus do App Ativo (`menu_runner.rs`)**: Travessia recursiva e achatamento da hierarquia de menus do aplicativo em primeiro plano (`File > Export As > PDF...`), permitindo pesquisa rápida e disparo de comandos diretamente pelo teclado.
+  - **Modo 3: Histórico Nativo da Área de Transferência (`src/clipboard/`)**:
+    - Armazenamento em ring buffer com capacidade configurável (padrão de 200 itens) para texto simples, texto formatado, imagens e arquivos.
+    - **Detector Automático de Swatch de Cores**: Reconhecimento instantâneo de strings de cores nos formatos Hex (`#RGB`, `#RRGGBB`, `#RRGGBBAA`) e `rgb()` com síntese de pré-visualização de amostra de cor ao vivo.
+    - **Proteção de Itens Fixados**: Sistema de marcação (*pin*) que imuniza itens favoritos contra descarte quando o buffer atinge sua capacidade máxima.
+  - **Modo 4: Biblioteca de Aplicativos Categorizada (`src/app_library/`)**:
+    - Grade semântica de aplicativos agrupados por categorias canônicas: Produtividade & Finanças, Utilitários, Ferramentas de Desenvolvedor, Criatividade & Design, Mídia & Entretenimento, Social & Comunicação, e Sistema & Ajustes.
+    - **Modo Jiggle com Física Oscilatória**: Oscilação angular harmônica a $8.0\text{Hz}$ ($\pm 1.5^\circ$) com desfasamento angular entre itens para efeito orgânico não-sincronizado e distintivo de remoção rápida.
+    - Rastreamento analítico de contagem de lançamentos e ordenação automática por popularidade.
+  - **Controlador Mestre do Spotlight (`src/controller.rs`)**:
+    - Transição contínua de altura via física analítica de mola (`qz_animation::SpringAnimation`) entre a pílula compacta de 56px e até 520px de altura expandida.
+    - Navegação completa por teclado com atalhos de troca de modo `Cmd+1` a `Cmd+4`, setas direcionais com rotação cíclica, ativação por `Enter` e expansão de Quick Look na tecla `Espaço`.
+
+---
+
 ## [0.4.0-alpha.1] - 2026-10-15
 
 ### Added

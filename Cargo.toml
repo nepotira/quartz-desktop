@@ -5,8 +5,8 @@ members = [
     "crates/qz-renderer",
     "crates/qz-compositor",
     "crates/qz-shell",
+    "crates/qz-spotlight",
     # Planned workspace crates added in subsequent phases:
-    # "crates/qz-spotlight",
     # "crates/qz-finder",
     # "crates/qz-quicklook",
     # "crates/qz-screenshot",
