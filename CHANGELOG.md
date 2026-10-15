@@ -7,6 +7,27 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.18.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qt-quartz-theme` (Fase 18 - Plugin QPlatformTheme + QStyle para Qt5/Qt6: Luzes de Tráfego, QPalette Cupertino e Métricas de Widgets Cocoa)**:
+  - **Mapeamento de Cores e Roles QPalette (`src/palette.rs`)**:
+    - Suporte a todos os papéis canônicos de cor (`Window`, `WindowText`, `Base`, `Text`, `AlternateBase`, `Button`, `ButtonText`, `Highlight`, `HighlightedText`, `ToolTipBase`, `ToolTipText`, `Mid`).
+    - Decomposição estrita nos 3 grupos de estado do Qt (`Active`, `Inactive`, `Disabled`).
+    - Injeção dinâmica da cor de destaque do usuário (`Highlight`) com desativação sutil em janelas em segundo plano.
+  - **Decoração de Janela e Luzes de Tráfego (`src/decorations.rs`)**:
+    - Posicionamento métrico das luzes de tráfego alinhadas à esquerda: Fechar ($x=12$), Minimizar ($x=32$) e Maximizar/Zoom ($x=52$) com diâmetro de 12px.
+    - Hit-testing circular de alta precisão para disparar ações de fechar, minimizar ou maximizar.
+    - Cálculo de centralização geométrica do título da janela na barra de título.
+  - **Motor de Métricas e Estilo QStyle Tahoe 26 (`src/style.rs`)**:
+    - Métricas exatas (`pixel_metric`): raio de canto de botões (6px/8px), indicadores de Checkbox e RadioButton (14x14px), espessura de barras de rolagem (12px hover, 6px ociosa sem setas de rolagem), e diâmetro de thumb de controles deslizantes (18px).
+    - Diretrizes de comportamento (`style_hint`): barras de rolagem flutuantes transitórias ativadas (`ScrollBarTransient = true`), supressão de sublinhados em atalhos de menu (`UnderlineShortcut = false`) e depressão física de botões ao clique.
+    - Cálculo de retângulos geométricos de sub-elementos para caixas de seleção, botões de opção, sliders e barras de rolagem.
+  - **Pontos de Entrada C-ABI FFI (`src/lib.rs`)**:
+    - Exportação de símbolos de carregamento dinâmico `qt_plugin_instance` e `qt_platform_theme_create` sob `#[unsafe(no_mangle)]` para integração direta em Qt5 e Qt6.
+
+---
+
 ## [0.17.0-alpha.1] - 2026-10-15
 
 ### Added

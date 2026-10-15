@@ -18,6 +18,7 @@ members = [
     "crates/apps/qz-terminal",
     "compat/xdg-desktop-portal-quartz",
     "compat/gtk-quartz-module",
+    "compat/qt-quartz-theme",
 ]
 
 [workspace.package]
