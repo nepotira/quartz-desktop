@@ -7,6 +7,33 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.3.0-alpha.1] - 2026-10-15
+
+### Added
+- **Subsistemas de Core Compositor em `qz-compositor` (Fase 3)**:
+  - **ProMotion Dynamic VRR Frame Pacing Engine (`src/vrr.rs`)**:
+    - Agendador dinâmico de frame budget com suporte de 10Hz a 120Hz (120Hz para molas/gestos/cursor recente em 100ms, 60Hz para vídeo/UI, 10Hz–24Hz para repouso).
+    - Controle da propriedade DRM `VRR_ENABLED` em conectores compatíveis com `vrr_capable == 1`.
+  - **Motor de Escala Retina e DPI Físico (`src/retina.rs`)**:
+    - Leitura de dimensões físicas e cálculo de densidade DPI precisa a partir do EDID de monitores DRM.
+    - Quantizador fracionário em múltiplos exatos de $1/120$ para conformidade com `wp-fractional-scale-v1`.
+    - Ponte de compatibilidade para XWayland legado renderizado em `@2x` inteiro com matriz de downsampling bicúbico Catmull-Rom.
+  - **Motor de Gestos Multi-Touch 1:1 (`src/gestures.rs`)**:
+    - Natural Scrolling com física hiperbólica Cocoa Rubber-Banding nos limites do viewport.
+    - Pinça com 2 dedos (Zoom contínuo) e duplo toque de 2 dedos (Smart Zoom).
+    - Toque de 3 dedos para Dicionário e Detectores de Dados.
+    - Swipe de 2 dedos para navegação em histórico com sobreposição fluida de páginas.
+    - Swipe de 3 ou 4 dedos: Cima (Mission Control), Baixo (App Exposé), Lados (troca contínua 1:1 de Spaces).
+    - Pinch Out com 4 dedos para Mostrar Mesa (*Show Desktop*) e Pinch In para App Library / Launchpad.
+    - `Ctrl` + Scroll de 2 dedos para ampliação suave de acessibilidade da tela inteira.
+  - **Gerenciador de Spaces, Stage Manager, Hot Corners e PiP (`src/spaces.rs`)**:
+    - Gestão de desktops virtuais Spaces com Split View nativo (divisão 50/50 com controle de proporção de 0.25 a 0.75).
+    - Stage Manager com app ativo central e até 4 grupos recentes na lateral esquerda com inclinação 3D (`rotateY(14°)`).
+    - Picture-in-Picture (PiP) magnético atraído por molas para os 4 cantos da tela (16px padding), movimento livre ao segurar `Cmd` e recolhimento lateral na borda da tela.
+    - Avaliador de Hot Corners (Cantos Ativos) para os 4 cantos da tela com acionamento padrão de Nota Rápida (*Quick Note*).
+
+---
+
 ## [0.2.0-alpha.1] - 2026-10-15
 
 ### Added
