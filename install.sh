@@ -29,6 +29,7 @@ fi
 echo "🚀 Instalando executáveis em /usr/local/bin/..."
 install -Dm755 "target/release/qz-desktop" "/usr/local/bin/qz-desktop"
 install -Dm755 "quartz-session" "/usr/local/bin/quartz-session"
+install -Dm755 "crates/qz-shell/src/qz_shell_ui.py" "/usr/local/bin/qz-shell-ui"
 
 # 3. Instalação da entrada de sessão Wayland para plasmalogin / SDDM / GDM
 echo "🖥️  Instalando descritor de sessão Wayland em /usr/share/wayland-sessions/..."

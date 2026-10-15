@@ -155,6 +155,37 @@ fn main() -> Result<()> {
     let gesture_engine = GestureEngine::new();
     info!("Gesture Engine pronto (gestos multi-toque 1:1, pinch e swipe elástico contínuo)");
 
+    // 4.8 Spawn macOS Tahoe 26 Shell GUI if available
+    let shell_ui_path = resolve_shell_ui_path();
+    let mut ui_process = if let Some(ref path) = shell_ui_path {
+        info!("Iniciando interface gráfica do macOS Tahoe 26: {}", path.display());
+        let mut cmd = if path.extension().and_then(|e| e.to_str()) == Some("py") {
+            let mut c = std::process::Command::new("python3");
+            c.arg(path);
+            c
+        } else {
+            std::process::Command::new(path)
+        };
+
+        if is_nested {
+            cmd.arg("--nested");
+        }
+
+        match cmd.spawn() {
+            Ok(child) => {
+                info!("Shell gráfico QuartzLinux iniciado com sucesso (PID: {})", child.id());
+                Some(child)
+            }
+            Err(e) => {
+                warn!("Não foi possível iniciar interface gráfica: {}", e);
+                None
+            }
+        }
+    } else {
+        warn!("qz-shell-ui não encontrado nos caminhos padrão. Operando em modo headless.");
+        None
+    };
+
     if is_nested {
         info!("Modo Aninhado (--nested) ativo: executando compositor dentro da sessão gráfica atual.");
     } else {
@@ -177,6 +208,21 @@ fn main() -> Result<()> {
     let dt = 1.0 / 120.0; // 120Hz frame pacing
 
     while running.load(Ordering::SeqCst) {
+        // Monitor GUI child process if running
+        if let Some(ref mut child) = ui_process {
+            match child.try_wait() {
+                Ok(Some(status)) => {
+                    info!("Interface gráfica foi encerrada ({:?}). Finalizando sessão.", status);
+                    break;
+                }
+                Ok(None) => {}
+                Err(e) => {
+                    warn!("Erro ao monitorar processo gráfico: {}", e);
+                    break;
+                }
+            }
+        }
+
         // Step physics, springs, and VRR pacing
         promotion.notify_pointer_motion(tick_counter as f64 * dt);
         let _ = promotion.compute_frame_budget(tick_counter as f64 * dt);
@@ -184,14 +230,14 @@ fn main() -> Result<()> {
 
         tick_counter += 1;
 
-        // In a headless or test loop, throttle to avoid burning CPU cycles
-        std::thread::sleep(std::time::Duration::from_millis(8)); // ~120fps sleep budget
+        // ProMotion dynamic frame sleep budget (~120fps)
+        std::thread::sleep(std::time::Duration::from_millis(8));
+    }
 
-        // For non-interactive demonstration or when nested test completes 50 ticks
-        if is_nested && tick_counter >= 50 {
-            info!("Sessão de teste aninhada (--nested) executou 50 quadros a 120Hz com sucesso!");
-            break;
-        }
+    // Clean up GUI process if still active
+    if let Some(ref mut child) = ui_process {
+        let _ = child.kill();
+        let _ = child.wait();
     }
 
     info!("Sessão QuartzLinux encerrada com sucesso. Até logo!");
@@ -199,6 +245,34 @@ fn main() -> Result<()> {
     let _ = spaces;
     let _ = gesture_engine;
     Ok(())
+}
+
+fn resolve_shell_ui_path() -> Option<std::path::PathBuf> {
+    let candidate_paths = [
+        std::path::PathBuf::from("/usr/local/bin/qz-shell-ui"),
+        std::path::PathBuf::from("crates/qz-shell/src/qz_shell_ui.py"),
+    ];
+
+    for path in &candidate_paths {
+        if path.exists() {
+            return Some(path.clone());
+        }
+    }
+
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let relative = parent.join("../../crates/qz-shell/src/qz_shell_ui.py");
+            if relative.exists() {
+                return Some(relative);
+            }
+            let adjacent = parent.join("qz_shell_ui.py");
+            if adjacent.exists() {
+                return Some(adjacent);
+            }
+        }
+    }
+
+    None
 }
 
 fn ctrlc_handler<F>(handler: F)

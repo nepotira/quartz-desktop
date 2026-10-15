@@ -15,6 +15,7 @@ echo "🗑️  Removendo arquivos do QuartzLinux..."
 
 rm -f "/usr/local/bin/qz-desktop"
 rm -f "/usr/local/bin/quartz-session"
+rm -f "/usr/local/bin/qz-shell-ui"
 rm -f "/usr/share/wayland-sessions/quartz.desktop"
 rm -f "/usr/lib/gtk-3.0/modules/libgtk_quartz_module.so"
 rm -f "/usr/lib/gtk-4.0/modules/libgtk_quartz_module.so"

@@ -7,6 +7,25 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.19.1-alpha.1] - 2026-10-15
+
+### Fixed & Added (Apresentação Gráfica Interativa Tahoe 26 & Integração com Sessão de Desktop)
+- **Executável do Compositor (`crates/qz-compositor/src/bin/qz-desktop.rs`)**:
+  - Remoção da limitação estática de 50 quadros (`tick_counter >= 50`) que encerrava a execução em 400ms no modo aninhado (`--nested`).
+  - Integração do inicializador dinâmico de interface gráfica: o binário do compositor agora detecta e inicia a interface de desktop do macOS Tahoe 26 (`qz_shell_ui.py` / `/usr/local/bin/qz-shell-ui`), sincronizando o loop ProMotion a 120Hz com a vida útil da janela gráfica.
+- **Ambiente de Desktop Interativo GTK4 + Cairo (`crates/qz-shell/src/qz_shell_ui.py`)**:
+  - Wallpaper dinâmico em gradiente Liquid Mesh Tahoe 26 (tons profundos de azul oceano, roxo meia-noite e arcos cromáticos luminosos).
+  - Top Menu Bar cravada em 28px de altura com efeito Liquid Glass, logotipo Apple ``, menus da aplicação ativa (`Finder`, `Arquivo`, `Editar`, `Visualizar`, `Ir`, `Janela`, `Ajuda`), status tray no canto direito com nível de bateria, Wi-Fi, ícone do Spotlight, alternador da Central de Controle e relógio dinâmico atualizado a cada segundo.
+  - Janela de teste interativa do **Finder** com semáforos fiéis às especificações da Apple (glifos internos `×`, `−`, `⤢` revelados no hover do grupo, escurecimento de luminância de 18% no clique ativo, barra lateral descolada em pílula flutuante e grade de pastas).
+  - Janela de terminal GPU Liquid Glass translúcida executando comandos (`neofetch`, `uname -a`, `clear`, etc.).
+  - **Dock em Vidro Líquido com Magnificação Parabólica Real**: ampliação suave de ícones baseada em curva cossenoidal/gaussiana conforme a proximidade do cursor, pontos indicadores de apps em execução e animação elástica de salto (bounce).
+  - **Spotlight Search (`Cmd+Space`)**: barra de pesquisa flutuante centralizada a 20% do topo da tela com cantos squircle $R=16\text{px}$, filtragem em tempo real e lançamento de aplicativos.
+  - **Central de Controle**: painel deslizante em Liquid Glass com cartões de conectividade (Wi-Fi, Bluetooth), modo Foco e controles deslizantes de Brilho da Tela e Volume do Som.
+- **Instalador do Sistema (`install.sh`, `uninstall.sh`)**:
+  - Adição da instalação e remoção automática do executável `/usr/local/bin/qz-shell-ui` para integração transparente com `quartz-session` e com o gerenciador de login do CachyOS.
+
+---
+
 ## [0.19.0-alpha.1] - 2026-10-15
 
 ### Fixed & Refactored (Auditoria Forense de Fidelidade Visual, Física e Cromática macOS Tahoe 26)
