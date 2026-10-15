@@ -7,6 +7,33 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.10.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-session-lock` (Fase 10 - Bloqueio de Sessão: Zero-Flicker Boot, Tahoe 26 Depth Lock Screen, Desacelerador de Vídeo Aéreo a 120fps e Troca Rápida de Usuário em Cubo 3D)**:
+  - **Tela de Bloqueio Volumétrica com Efeito de Profundidade (`src/depth_lock.rs`)**:
+    - **Relógio Volumétrico com Máscara de Profundidade**: Renderização espacial dos dígitos do relógio em camada 3D atrás do sujeito destacado do papel de parede (montanhas, pessoas, monumentos).
+    - **Salvaguarda de Legibilidade**: Avaliação analítica da taxa de oclusão; se mais de 35% da área dos dígitos for obscurecida pelo sujeito, o efeito de profundidade é automaticamente desativado para garantir legibilidade tipográfica.
+    - **Oscilador Harmônico Amortecido para Erro de Senha**: Simulação física de vibração horizontal com decaimento exponencial ($x(t) = A e^{-\gamma t} \cos(\omega t)$) com $A = 24.0\text{px}$, amortecimento $\gamma = 12.0$ e frequência de vibração $\omega = 45.0\text{ rad/s}$ ($~7.16\text{ Hz}$).
+    - **Coloração Cromática Adaptativa**: Alternância automática entre `LightGlass` e `DarkGraphite` baseada na luminância do papel de parede na região do relógio.
+    - **Pílula de Senha Liquid Glass e Bloqueio Temporizado**: Máquina de estados (`Locked`, `Authenticating`, `Success`, `FailedShake`, `LockedOut` após 5 tentativas incorretas).
+  - **Desacelerador de Vídeo Aéreo a 120fps (`src/aerial_decelerator.rs`)**:
+    - **ProMotion 120fps Screensaver**: Reprodução contínua de filmagens aéreas em drone a 120fps com integração temporal trapezoidal.
+    - **Desaceleração Contínua $C^2$ ao Desbloquear**: Ao acordar ou desbloquear o sistema, a velocidade de reprodução desacelera suavemente de $1.0\times$ para $0.0\times$ ao longo de $2.4\text{ segundos}$ usando uma curva de interpolação Hermite cúbica com derivadas nulas nas duas extremidades:
+      $$u = \frac{t}{T_{\text{decel}}}, \quad \text{speed}(u) = (1 - u)^2 (1 + 2u)$$
+    - **Fusão Perfeita em Papel de Parede Estático**: O quadro de vídeo exato onde a velocidade atinge zero torna-se o papel de parede estático do desktop sem cortes bruscos ou saltos visuais.
+  - **Troca Rápida de Usuário em Cubo 3D (`src/cube_switch.rs`)**:
+    - **Projeção em Perspectiva Espacial**: Campo de visão $\text{FOV} = 45^\circ$, distância analítica de câmera $d = \frac{1}{\tan(\text{FOV} / 2)} \approx 2.41421356$ para mapeamento sem distorção na rotação zero ($\theta = 0^\circ$).
+    - **Gesto Interativo 1:1 e Limite de Confirmação a 45°**: Rastreamento contínuo de arrasto com dois dedos no trackpad; soltura além de $45^\circ$ ($\pi/4$) confirma a rotação para a face do próximo usuário ($\pm 90^\circ$), enquanto soltura aquém de $45^\circ$ retorna elasticamente à face original via `SpringAnimation` com preset `mission_control` ($\zeta = 1.00$).
+    - **Matriz Model-View-Projection ($\mathbf{MVP}$)**: Geração de transformações tridimensionais compatíveis com pipelines Vulkan e OpenGL ES.
+  - **Handshake de Inicialização Zero-Flicker (`src/boot_handshake.rs`)**:
+    - **Preservação de Scanout DRM KMS**: Elimina o piscar preto de transição do Plymouth/UEFI para o compositor Wayland reutilizando o descritor de framebuffer do scanout ativo.
+    - **Conformidade com `ext-session-lock-v1`**: Isolamento de segurança estrito capturando todos os dispositivos de entrada e gerando transição suave de crossfade alfa de $300\text{ms}$ para o desktop desbloqueado.
+  - **Coordenador Central de Sessão (`src/lib.rs`)**:
+    - Estrutura `SessionLockCoordinator` integrando a tela de bloqueio, desacelerador aéreo, cubo 3D e handshake KMS.
+
+---
+
 ## [0.9.0-alpha.1] - 2026-10-15
 
 ### Added

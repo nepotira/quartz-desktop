@@ -507,6 +507,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "qz-session-lock"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glam",
+ "qz-animation",
+ "qz-renderer",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "qz-shell"
 version = "0.1.0"
 dependencies = [
