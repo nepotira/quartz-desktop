@@ -43,4 +43,6 @@ pub mod shaders {
     pub const CUBE_3D_VERT: &str = include_str!("../shaders/cube_3d.vert");
     /// 3D Cube Fast User Switching fragment shader.
     pub const CUBE_3D_FRAG: &str = include_str!("../shaders/cube_3d.frag");
+    /// macOS Tahoe 26 Procedural SDF UI Uber Shader (Zero External Fonts/Icons).
+    pub const UI_UBER_SHADER_FRAG: &str = include_str!("../shaders/ui_uber_shader.frag");
 }

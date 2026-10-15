@@ -7,6 +7,38 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.20.0-alpha.1] - 2026-10-15
+
+### Fixed & Rewritten (Intervenção de Emergência Gráfica — Reescrita 100% Procedural e Liquid Glass Real)
+- **Erradicação Total do Bug dos Glifos Tofu (`▯`) / Proibição Absoluta de Fontes para Ícones**:
+  - Eliminação de todos os caracteres Unicode privados e emojis da interface. Todos os ícones do sistema agora são renderizados como vetores matemáticos e SDFs booleanos puros.
+  - **Logotipo da Maçã ()**: Geometria booleana com dois lóbulos simétricos, entalhe superior, dente inferior e subtração analítica da mordida lateral com folha inclinada a 35°.
+  - **Bandeja de Status**: Bateria vetorial com pílula, terminal positivo e nível de carga dinâmico; Wi-Fi vetorial com ponto base e 3 arcos concêntricos de 90°; Lupa de busca vetorial com anel e haste a 45°; Central de controle vetorial com controles deslizantes duplos.
+  - **Ícones da Sidebar e Toolbar do Finder**: Vetores dedicados para AirDrop, Recentes, Aplicativos, Mesa, Documentos, Downloads, iCloud Drive, Macintosh HD, Rede e Lixeira; setas `<` `>` com terminação arredondada; e seletor segmentado de 4 modos de visualização (Ícones, Lista, Colunas, Galeria).
+- **Artes Vetoriais de Alta Definição para o Dock**:
+  - **Finder**: Rosto sorridente bicolor (azul canônico `#1E88E5` e azul pálido `#E1F5FE`), nariz com curva paramétrica, olhos verticais e arco de sorriso parabólico.
+  - **Launchpad**: Grade 3x3 com 9 mini-squircles nas cores vibrantes do arco-íris do macOS.
+  - **Safari**: Bússola azul royal em gradiente radial, mostrador graduado com marcas horárias e agulha 3D bicolor vermelha/branca inclinada a 45°.
+  - **Terminal**: Squircle em obsidiana metálica com costura superior e prompt verde fluorescente `>_` com traços vetoriais espessos.
+  - **Ajustes do Sistema**: Squircle em titânio acetinado com engrenagem concêntrica metálica de 8 dentes radiais.
+  - **Monitor de Atividade**: Squircle escuro com onda eletrocardiográfica de pulso verde vivo.
+  - **Pré-Visualização**: Squircle ciano com moldura polaroid e silhueta vetorial de montanhas.
+  - **Lixeira**: Cesta translúcida aramada com nervuras verticais e anel cromado superior.
+- **Pipeline de Desfoque em Pirâmide Dual-Kawase & Liquid Glass Real**:
+  - Geração de textura de backdrop desfocada via cópia offscreen e filtragem bilinear multipass em cadeia de subamostragem.
+  - Amostragem do fundo desfocado por baixo da Top Menu Bar, da Sidebar do Finder, do Dock e do Spotlight, permitindo que as cores dinâmicas do papel de parede (azul oceânico, ciano, coral e dourado) refratem e brilhem suavemente através das superfícies translúcidas com bordas especulares de 1px.
+- **Sombra Analítica Gaussiana Dupla (`erf`)**:
+  - Substituição do retângulo escuro duro por um envelope Gaussiano contínuo analítico expandido em 72px: Camada 1 de Contato (AO, $\sigma=4\text{px}, \Delta y=2\text{px}, \alpha=0.30$) e Camada 2 de Penumbra Atmosférica ($\sigma=38\text{px}, \Delta y=22\text{px}, \alpha=0.45$).
+- **Anatomia Fiel da Janela do Finder (macOS Tahoe 26)**:
+  - Floating Glass Pill Sidebar (inset de 8px, raio de 12px) flutuando sobre o fundo Liquid Glass com os 3 botões de Semáforo no topo da própria pílula.
+  - Toolbar completa de 52px com navegação `<` `>`, título `Macintosh HD`, seletor de visualizações e campo de busca.
+  - Pastas canônicas em folha dupla com aba superior traseira, gradiente luminoso Apple Cyan-to-Blue (`#74D8FF` $\to$ `#0084FF`), linha de brilho especular e sombra projetada.
+  - Rodapé de status de 28px com trilha de caminho e contagem de itens.
+- **Shader SDF UI Uber Shader (`crates/qz-renderer/shaders/ui_uber_shader.frag`)**:
+  - Biblioteca completa em GLSL 450 contendo `sdAppleLogo`, `renderMacOSFolder`, `renderFinderDockIcon`, `renderSafariDockIcon`, `renderTerminalDockIcon`, `renderSettingsDockIcon`, `renderLaunchpadDockIcon`, `renderTrashDockIcon`, `sdWifiIcon`, `sdBatteryIcon` e `sdSearchLoupe`.
+
+---
+
 ## [0.19.1-alpha.1] - 2026-10-15
 
 ### Fixed & Added (Apresentação Gráfica Interativa Tahoe 26 & Integração com Sessão de Desktop)
