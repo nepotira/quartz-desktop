@@ -2,9 +2,9 @@
 resolver = "3"
 members = [
     "crates/qz-animation",
+    "crates/qz-renderer",
     "crates/qz-compositor",
     # Planned workspace crates added in subsequent phases:
-    # "crates/qz-renderer",
     # "crates/qz-shell",
     # "crates/qz-spotlight",
     # "crates/qz-finder",
