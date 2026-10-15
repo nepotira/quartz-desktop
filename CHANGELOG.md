@@ -7,6 +7,34 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.6.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-finder` (Fase 6 - Desktop Stacks, 4 Modos de Visualização, FS Undo/Redo, Pastas com Mola, Flocking, Renomeação em Lote e Manipulação de .app/.dmg)**:
+  - **Desktop Manager & Stacks Dinâmicas (`src/desktop/`)**:
+    - Agrupamento inteligente de ícones da Mesa em pilhas por Tipo (Screenshots, Imagens, Documentos, Filmes, Música, Arquivos, Código), Data de Modificação, Data de Criação e Tags do Finder.
+    - Animação de desdobramento/recolhimento em leque acionada por física analítica de molas (`qz_animation::SpringAnimation`).
+  - **As 4 Visualizações Canônicas do Finder (`src/views/`)**:
+    - **Visualização em Ícones (`Cmd+1` / `icon_view.rs`)**: Layout livre ou em grade magnética, escala de ícones de 16px a 512px, rótulos na parte inferior ou à direita, metadados sob o rótulo e cálculo de alinhamento por célula.
+    - **Visualização em Lista (`Cmd+2` / `list_view.rs`)**: Árvore hierárquica com triângulos de abertura, colunas redimensionáveis e ordenáveis (Nome, Data de Modificação, Tamanho, Tipo), e opção de cálculo em tempo real de tamanho de pastas.
+    - **Visualização em Colunas (`Cmd+3` / `column_view.rs` - NeXT Miller Columns)**: Cadeia horizontal infinita de colunas com navegação completa por setas direcionais (`Esquerda`/`Direita`/`Cima`/`Baixo`) e coluna direita de pré-visualização com metadados e botões de Ações Rápidas (*Quick Actions*).
+    - **Visualização em Galeria (`Cmd+4` / `gallery_view.rs` - Evolução do Cover Flow)**: Carrossel central de destaque visual de alta resolução, faixa inferior de miniaturas horizontais e painel lateral colapsável de Inspeção com atributos EXIF.
+  - **Mecanismo Transacional de Undo/Redo do Sistema de Arquivos (`src/undo/`)**:
+    - Diário atômico para `Cmd+Z` e `Shift+Cmd+Z` com reversão segura de operações de Mover, Copiar, Renomear, Enviar para a Lixeira, Restaurar da Lixeira (*Put Back*), Criar Pasta e Renomeação em Lote.
+  - **Pastas com Mola e Física de Arraste em Bando (`src/drag_physics/`)**:
+    - *Spring-Loaded Folders*: Abertura elástica automática de pastas ao pairar itens arrastados por 500ms (ou ao pressionar a barra de `Espaço`).
+    - *Multi-Item Flocking*: Convergência orgânica de múltiplos itens arrastados em direção ao cursor com amortecimento harmônico de 2ª ordem e rotação angular suave (*splay* de $\pm 4^\circ$).
+  - **Motor de Renomeação em Lote do macOS Tahoe 26 (`src/batch_rename/`)**:
+    - 3 modos de transformação: Substituir Texto (com ou sem diferenciação de maiúsculas/minúsculas), Adicionar Texto (prefixo ou sufixo preservando extensões) e Formato Sequencial (Nome e Índice, Contador `0001` ou Data).
+    - Geração de pré-visualização em tempo real e detecção de colisões de nomes.
+  - **Manipulador de Bundles `.app` e Imagens de Disco `.dmg` (`src/bundle_dmg/`)**:
+    - Resolução estrutural de pacotes de aplicação (`Contents/Info.plist`, binário principal em `Contents/MacOS/` e recursos de ícone).
+    - Montagem em loopback de imagens `.dmg` e `.iso` no diretório virtual `/Volumes/` com ciclo de vida e ação de ejetar.
+  - **Controlador Mestre de Janelas do Finder (`src/window.rs`)**:
+    - Barra de ferramentas Liquid Glass, barra lateral com seções de Favoritos, Locais e Discos montados, barra de caminho de diretório e barra de status com capacidade restante de armazenamento.
+
+---
+
 ## [0.5.0-alpha.1] - 2026-10-15
 
 ### Added
