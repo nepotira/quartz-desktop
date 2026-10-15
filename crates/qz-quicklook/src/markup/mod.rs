@@ -138,6 +138,28 @@ impl MarkupSession {
         self.active_tool
     }
 
+    /// Active stroke color $[r, g, b, a]$.
+    #[inline]
+    pub fn active_color(&self) -> [f32; 4] {
+        self.active_color
+    }
+
+    /// Sets the active stroke color $[r, g, b, a]$.
+    pub fn set_active_color(&mut self, color: [f32; 4]) {
+        self.active_color = color;
+    }
+
+    /// Active stroke width in points.
+    #[inline]
+    pub fn active_stroke_width(&self) -> f32 {
+        self.active_stroke_width
+    }
+
+    /// Sets the active stroke width in points.
+    pub fn set_active_stroke_width(&mut self, width: f32) {
+        self.active_stroke_width = width.max(0.5);
+    }
+
     /// Rotates document clockwise by 90 degrees (`Cmd+R`).
     pub fn rotate_clockwise(&mut self) -> u32 {
         self.rotation_degrees = (self.rotation_degrees + 90) % 360;

@@ -1,0 +1,19 @@
+[package]
+name = "qz-screenshot"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "macOS Tahoe 26 Screenshot & Screen Recording Subsystem (Cmd+Shift+3/4/5, Isolated Window Alpha+Shadow, PipeWire Recorder, Floating Thumbnail)"
+
+[dependencies]
+qz-animation = { workspace = true }
+qz-renderer = { workspace = true }
+qz-shell = { workspace = true }
+glam = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

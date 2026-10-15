@@ -480,6 +480,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "qz-screenshot"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glam",
+ "qz-animation",
+ "qz-renderer",
+ "qz-shell",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "qz-shell"
 version = "0.1.0"
 dependencies = [

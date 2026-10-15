@@ -7,6 +7,35 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.8.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-screenshot` (Fase 8 - Captura de Tela Cmd+Shift+3/4/5, Janela Isolada com Alfa e Sombra, Gravador PipeWire e Miniatura Flutuante)**:
+  - **Mecanismo de Modos e Atalhos de Captura (`src/capture/`)**:
+    - `Cmd+Shift+3`: Captura instantânea de tela cheia para todos os monitores conectados.
+    - `Cmd+Shift+4`: Seleção retangular interativa com retícula (*crosshair*), trava de proporção 1:1 ao segurar `Shift` e expansão central ao segurar `Option`.
+    - **Modo Câmera com Barra de Espaço**: Transição instantânea da retícula para ícone de câmera para captura de janela isolada sob o cursor com realce azul Liquid Glass.
+    - **Janela Isolada com Fundo Transparente e Dupla Sombra Gaússiana (`isolated_window.rs`)**:
+      - Composição de canal alfa com cantos arredondados Squircle $G^2$.
+      - Sombra analítica de dupla camada da Apple (Oclusão Ambiente $\sigma=4.0\text{px}$ + Penumbra Profunda $\sigma=38.0\text{px}$) com cálculo de margens de respiro (84px nas laterais, 48px no topo e 120px na base) para caimento perfeito da curva gaussiana.
+      - Supressão dinâmica de sombra ao manter a tecla `Option` pressionada, gerando imagem rente à borda da janela.
+  - **Barra de Ferramentas HUD Interativa (`src/hud/`)**:
+    - `Cmd+Shift+5`: Pílula flutuante Liquid Glass com 5 modos operacionais (Capturar Tela, Capturar Janela, Capturar Parte, Gravar Tela, Gravar Parte).
+    - Menu Popover de Opções: Destinos de salvamento (Mesa, Documentos, Área de Transferência, Mail, Mensagens, QuickTime Player ou pasta personalizada), Temporizador de 5s ou 10s com contagem regressiva, ativação de microfone e efeito de clique do mouse.
+  - **Miniatura Flutuante com Física de Molas (`src/thumbnail/`)**:
+    - Miniatura de $180\times 112\text{px}$ deslizando no canto inferior direito da tela via `qz_animation::SpringAnimation` (preset `dock_bounce`).
+    - Temporizador de auto-salvamento de 5 segundos pausado automaticamente ao passar o cursor.
+    - Descarte com gesto de deslizar para a direita (*swipe right*) com salvamento imediato e suporte a arrastar-e-soltar (*drag & drop*) direto para outros aplicativos.
+  - **Daemon Gravador de Tela PipeWire (`src/recorder/`)**:
+    - Pipeline de captura de vídeo com aceleração por hardware via DMA-BUF (codecs HEVC/H.264 a 60fps/120fps ProMotion).
+    - Loopback de áudio do sistema com captura opcional de microfone.
+    - Máquina de estados: Inativo, Contagem Regressiva, Gravando, Pausado e Finalizando.
+    - Cápsula indicadora roxa na Top Menu Bar com contador de tempo decorrido e atalho `Cmd+Ctrl+Esc` para encerramento rápido.
+  - **Controlador Mestre de Capturas (`src/controller.rs`)**:
+    - Orquestração unificada de atalhos globais, retículas, HUD, geração de arquivos nomeados por carimbo de data/hora e entrega à área de transferência ou disco.
+
+---
+
 ## [0.7.0-alpha.1] - 2026-10-15
 
 ### Added
