@@ -1,0 +1,18 @@
+[package]
+name = "qz-daemons"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "macOS Tahoe 26 System Background Daemons (CoreAudio Auto-pause, Wi-Fi/BT Option-Diagnostics, Power/Clamshell, OSD 1/64-step, Accents, Emoji, Dictation)"
+
+[dependencies]
+qz-animation = { workspace = true }
+glam = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }

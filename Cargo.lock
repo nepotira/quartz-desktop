@@ -437,6 +437,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "qz-daemons"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glam",
+ "qz-animation",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "qz-finder"
 version = "0.1.0"
 dependencies = [
