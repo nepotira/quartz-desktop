@@ -7,6 +7,40 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.14.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-activity-monitor` (Fase 14 - Aplicativo Monitor de Atividade Tahoe 26: CPU, Gráfico de Pressão de Memória, Energia, Disco, Rede e Force Quit)**:
+  - **Telemetria de Processos e Gestão Force Quit (`src/process.rs`)**:
+    - Monitoramento de PID, nome do executável, usuário, CPU % suavizado, tempo de CPU acumulado, contagem de threads, acordadas em repouso (idle wakeups), GPU %, memória RSS, memória comprimida, impacto energético, energia de 12 horas, estado App Nap, taxas de disco e rede, e arquitetura de binário (Apple Silicon nativo ARM64, Intel via Rosetta 2 e Linux nativo).
+    - Ordenação dinâmica multi-colunas e filtragem avançada (Todos os Processos, Meus Processos, Processos Ativos, Aplicativos com Janelas e busca instantânea por substring ou PID).
+    - Término de processos via sinais POSIX: `SIGTERM` (15, encerramento gracioso) e `SIGKILL` (9, encerramento forçado) com proteção estrita para processos críticos do sistema (PID 1).
+  - **Gráfico de Pressão de Memória e Paging Tahoe 26 (`src/memory.rs`)**:
+    - Classificação canônica dos 3 estados de pressão: `Normal` (Verde Cupertino `#34C759`, $<60\%$), `Aviso` (Amarelo Cupertino `#FF9500`, $60\%..=80\%$) e `Crítico` (Vermelho Cupertino `#FF3B30`, $>80\%$).
+    - Decomposição precisa da memória: Memória Física instalada, Memória dos Aplicativos (App Memory), Memória Fixada (Wired Memory), Memória Comprimida (Compressed RAM), Arquivos em Cache e Espaço de Swap utilizado no SSD.
+    - Buffer em anel histórico (Ring Buffer) de 120 amostras para renderização da curva contínua Bezier/spline em tempo real.
+  - **Telemetria Multi-Core de CPU e Cargas Heterogêneas (`src/cpu.rs`)**:
+    - Decomposição percentual do tempo de CPU: Usuário (`#007AFF` Azul), Sistema (`#FF3B30` Vermelho) e Ocioso (Idle).
+    - Suporte a arquiteturas heterogêneas diferenciando núcleos de Alto Desempenho (P-cores) e Alta Eficiência (E-cores).
+    - Médias de carga do kernel (Load Averages de 1, 5 e 15 minutos), contagem global de threads e buffer em anel de histórico da CPU.
+  - **Impacto Energético e Telemetria de Bateria (`src/energy.rs`)**:
+    - Cálculo analítico do índice de Impacto Energético:
+      $$\text{Score} = 1.0 \times \text{CPU}_{\%} + 1.5 \times \text{GPU}_{\%} + 0.05 \times \text{Wakeups}_{\text{sec}}$$
+    - Média móvel exponencial (EWMA) de energia nas últimas 12 horas.
+    - Detecção de aplicativos em modo App Nap e identificação de Grandes Consumidores de Energia.
+    - Telemetria de bateria: porcentagem de carga, fonte de alimentação (Bateria / Adaptador de Corrente), status de carregamento, contagem de ciclos, saúde e estimativa de tempo restante.
+  - **Taxas de Transferência de Disco e Rede (`src/disk_network.rs`)**:
+    - Monitoramento de I/O de Disco: taxas de leitura e gravação em bytes/s, contagem de operações (IOPS) e bytes cumulativos desde a inicialização.
+    - Monitoramento de Rede: pacotes por segundo, largura de banda de download e upload em bytes/s e volumes totais transferidos.
+    - Buffers temporais para gráficos em tempo real de tráfego de entrada e saída.
+  - **Controlador de Janela e Cromo Liquid Glass (`src/window.rs`)**:
+    - Barra de título unificada com Controle Segmentado de 5 abas canônicas: `CPU`, `Memória`, `Energia`, `Disco` e `Rede`.
+    - Alinhamento automático da coluna de ordenação com base na aba ativa.
+    - Folhas modais ancoradas de vidro líquido (Liquid Glass Sheets): Confirmação de Force Quit com opções `Cancelar`, `Encerrar` e `Forçar Encerramento`, e Inspetor Detalhado de Processos.
+    - Painel de resumo dinâmico inferior alternando gráficos e estatísticas em tempo real conforme a aba selecionada.
+
+---
+
 ## [0.13.0-alpha.1] - 2026-10-15
 
 ### Added
