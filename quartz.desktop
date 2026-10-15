@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=QuartzLinux (macOS Tahoe 26)
+Comment=Ambiente de Desktop e Compositor Wayland QuartzLinux (macOS Tahoe 26)
+Exec=/usr/local/bin/quartz-session
+Type=Application
+DesktopNames=Quartz
+Keywords=wayland;compositor;quartz;macos;desktop;tahoe;

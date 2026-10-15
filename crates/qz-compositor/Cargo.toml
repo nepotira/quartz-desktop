@@ -15,3 +15,4 @@ glam = { workspace = true }
 xkbcommon = { workspace = true }
 wayland-server = { workspace = true }
 qz-animation = { workspace = true }
+tracing-subscriber = { workspace = true }

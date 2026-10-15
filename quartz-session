@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# QuartzLinux (macOS Tahoe 26) Wayland Session Launcher
+# Production-grade session wrapper for CachyOS / Arch Linux
+# ==============================================================================
+
+set -e
+
+# 1. Desktop & Session identification
+export XDG_CURRENT_DESKTOP="Quartz"
+export XDG_SESSION_DESKTOP="quartz"
+export XDG_SESSION_TYPE="wayland"
+
+# 2. Toolkit integration (GTK3/4, Qt5/6, SDL, Java, Firefox)
+export GTK_MODULES="gtk-quartz-module:${GTK_MODULES:-}"
+export QT_QPA_PLATFORMTHEME="quartz"
+export QT_QPA_PLATFORM="wayland;xcb"
+export GDK_BACKEND="wayland,x11,*"
+export SDL_VIDEODRIVER="wayland"
+export CLUTTER_BACKEND="wayland"
+export MOZ_ENABLE_WAYLAND="1"
+export _JAVA_AWT_WM_NONREPARENTING="1"
+
+# 3. Synchronize environment with D-Bus and systemd user session
+if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd \
+        XDG_CURRENT_DESKTOP \
+        XDG_SESSION_DESKTOP \
+        XDG_SESSION_TYPE \
+        GTK_MODULES \
+        QT_QPA_PLATFORMTHEME \
+        QT_QPA_PLATFORM \
+        GDK_BACKEND \
+        MOZ_ENABLE_WAYLAND
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment \
+        XDG_CURRENT_DESKTOP \
+        XDG_SESSION_DESKTOP \
+        XDG_SESSION_TYPE \
+        GTK_MODULES \
+        QT_QPA_PLATFORMTHEME \
+        QT_QPA_PLATFORM \
+        GDK_BACKEND \
+        MOZ_ENABLE_WAYLAND
+fi
+
+# 4. Launch QuartzLinux Compositor
+exec /usr/local/bin/qz-desktop "$@"
