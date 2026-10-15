@@ -1,0 +1,20 @@
+[package]
+name = "qt-quartz-theme"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "macOS Tahoe 26 QPlatformTheme and QStyle Engine for Qt5 and Qt6 on QuartzLinux"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+glam = { workspace = true }
