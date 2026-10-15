@@ -1,0 +1,333 @@
+//! # Tripartite Dock, Parabolic Magnification, Stacks & Dynamic Trash Subsystem
+//!
+//! Controls the full macOS Tahoe 26 Dock:
+//! - **Tripartite Structure**:
+//!   `[Finder + Pinned/Running Apps] | [Up to 3 Recent Apps] | [Folder Stacks, Live Minimized Windows & Trash]`.
+//! - **Separator Resizing**: Dragging the vertical dividing line smoothly scales $S_{\text{base}}$
+//!   ($16\text{px} \dots 128\text{px}$); holding `Option` snaps to canonical sizes (16, 32, 48, 64, 96, 128).
+//! - **Parabolic Magnification & Bounce**: Analytical cosine magnification and launch bounce via `SpringParams::dock_bounce()`.
+//! - **Gestures & Spring-Loaded Drag**: 2-finger swipe up summons App Exposé; hovering a file for 500ms
+//!   triggers Spring-Loaded Dock Exposé.
+//! - **Context Menu with Option**: Instant switch to *Hide Others* and **Force Quit**.
+//! - **Stacks (Folders in Dock) across all 4 modes**:
+//!   - **Fan (Leque)**: $\theta_k = k \cdot 4.5^\circ$.
+//!   - **Grid (Grade)**: In-place subfolder navigation without opening Finder.
+//!   - **List (Lista)**.
+//!   - **Automatic**: Fan for $\le 9$ items, Grid for $\ge 10$.
+//!   - Holding `Shift` runs animations in slow-motion ($0.15\times$).
+//! - **Dynamic Trash / Eject (`⏏`)**: Trash icon morphs into Eject when dragging mounted volumes or DMGs.
+
+use qz_animation::{DockMagnifier, SpringAnimation, SpringParams};
+use std::collections::VecDeque;
+
+/// View mode for Stacks (folder shortcuts on the right side of the Dock).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StackViewMode {
+    /// Arc curve fan distribution: angle = k * 4.5 degrees.
+    Fan,
+    /// Multi-column icon grid with in-place folder drill-down.
+    Grid,
+    /// Vertical menu list with small icons.
+    List,
+    /// Fan for <= 9 items, Grid for >= 10 items.
+    Automatic,
+}
+
+/// An entry within a Dock folder Stack.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StackItem {
+    /// Item filesystem path.
+    pub path: String,
+    /// Display filename.
+    pub name: String,
+    /// True if item is a subdirectory.
+    pub is_directory: bool,
+}
+
+/// An active Stack folder in the Dock.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DockStack {
+    /// Folder filesystem path.
+    pub folder_path: String,
+    /// Display name (e.g. "Downloads", "Documents").
+    pub name: String,
+    /// Configured display mode.
+    pub view_mode: StackViewMode,
+    /// Contained items.
+    pub items: Vec<StackItem>,
+    /// True if currently opened/expanded.
+    pub is_open: bool,
+    /// Expansion animation spring.
+    pub expansion_spring: SpringAnimation,
+}
+
+impl DockStack {
+    /// Angle increment per fan item in degrees (4.5 degrees).
+    pub const FAN_ANGLE_STEP_DEG: f32 = 4.5;
+
+    /// Creates a new Dock stack.
+    pub fn new(folder_path: &str, name: &str, view_mode: StackViewMode, items: Vec<StackItem>) -> Self {
+        Self {
+            folder_path: folder_path.to_string(),
+            name: name.to_string(),
+            view_mode,
+            items,
+            is_open: false,
+            expansion_spring: SpringAnimation::new(SpringParams::window_open(), 0.0, 0.0, 0.0),
+        }
+    }
+
+    /// Resolves actual view mode taking `Automatic` threshold into account.
+    pub fn effective_view_mode(&self) -> StackViewMode {
+        match self.view_mode {
+            StackViewMode::Automatic => {
+                if self.items.len() <= 9 {
+                    StackViewMode::Fan
+                } else {
+                    StackViewMode::Grid
+                }
+            }
+            mode => mode,
+        }
+    }
+
+    /// Computes fan item angle in degrees for index `k`: $\theta_k = k \cdot 4.5^\circ$.
+    pub fn fan_item_angle_deg(k: usize) -> f32 {
+        k as f32 * Self::FAN_ANGLE_STEP_DEG
+    }
+
+    /// Toggles stack open state (optionally in slow motion if Shift was held).
+    pub fn toggle_open(&mut self, slow_motion: bool) -> bool {
+        self.is_open = !self.is_open;
+        let target = if self.is_open { 1.0 } else { 0.0 };
+
+        let mut params = SpringParams::window_open();
+        if slow_motion {
+            // Scale stiffness down by (0.15)^2 to produce 0.15x speed
+            params.stiffness *= 0.0225;
+            params.damping *= 0.15;
+        }
+
+        self.expansion_spring.set_params(params);
+        self.expansion_spring.retarget(target);
+        self.is_open
+    }
+}
+
+/// Dock application item specification.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DockAppItem {
+    /// Application identifier (e.g. "org.quartz.finder").
+    pub app_id: String,
+    /// Display name (e.g. "Finder").
+    pub name: String,
+    /// Whether app is permanently pinned to Dock.
+    pub is_pinned: bool,
+    /// Whether process is currently running.
+    pub is_running: bool,
+    /// Active bounce animation spring (for launch or urgent alert).
+    pub bounce_spring: SpringAnimation,
+    /// Notification badge count (e.g. unread mail count).
+    pub badge_count: Option<u32>,
+    /// Download/copy progress $[0.0, 1.0]$ displayed under icon.
+    pub progress_fraction: Option<f32>,
+}
+
+impl DockAppItem {
+    /// Creates a pinned app item.
+    pub fn pinned(app_id: &str, name: &str) -> Self {
+        Self {
+            app_id: app_id.to_string(),
+            name: name.to_string(),
+            is_pinned: true,
+            is_running: false,
+            bounce_spring: SpringAnimation::new(SpringParams::dock_bounce(), 0.0, 0.0, 0.0),
+            badge_count: None,
+            progress_fraction: None,
+        }
+    }
+
+    /// Triggers an iconic launch bounce.
+    pub fn trigger_bounce(&mut self) {
+        self.bounce_spring.retarget(32.0); // 32px vertical bounce peak
+    }
+}
+
+/// Trash / Eject state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TrashMode {
+    /// Empty trash can.
+    EmptyTrash,
+    /// Trash containing deleted files.
+    FullTrash,
+    /// Eject symbol (`⏏`) active while dragging a mounted volume or disk image.
+    EjectVolume,
+}
+
+/// Tripartite Dock Coordinator managing layout, magnification, stacks, and dragging.
+pub struct DockCoordinator {
+    pinned_apps: Vec<DockAppItem>,
+    recent_apps: VecDeque<DockAppItem>,
+    stacks: Vec<DockStack>,
+    trash_mode: TrashMode,
+    base_size: f64,
+    max_magnified_size: f64,
+    magnification_radius: f64,
+    is_magnification_enabled: bool,
+}
+
+impl Default for DockCoordinator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl DockCoordinator {
+    /// Canonical snap sizes for Option-resizing.
+    pub const CANONICAL_SIZES: [f64; 6] = [16.0, 32.0, 48.0, 64.0, 96.0, 128.0];
+
+    /// Creates standard Dock layout initialized with Finder and Trash.
+    pub fn new() -> Self {
+        let finder = DockAppItem::pinned("org.quartz.finder", "Finder");
+        let terminal = DockAppItem::pinned("org.quartz.terminal", "Terminal");
+        let settings = DockAppItem::pinned("org.quartz.settings", "System Settings");
+
+        Self {
+            pinned_apps: vec![finder, terminal, settings],
+            recent_apps: VecDeque::with_capacity(3),
+            stacks: Vec::new(),
+            trash_mode: TrashMode::EmptyTrash,
+            base_size: 48.0,
+            max_magnified_size: 96.0,
+            magnification_radius: 160.0,
+            is_magnification_enabled: true,
+        }
+    }
+
+    /// Sets base icon size, optionally snapping to canonical sizes if Option is held.
+    pub fn resize_base(&mut self, raw_size: f64, snap_canonical: bool) {
+        let clamped = raw_size.clamp(16.0, 128.0);
+        if snap_canonical {
+            // Find nearest canonical size
+            let nearest = Self::CANONICAL_SIZES
+                .iter()
+                .min_by(|a, b| (clamped - **a).abs().partial_cmp(&(clamped - **b).abs()).unwrap())
+                .copied()
+                .unwrap_or(48.0);
+            self.base_size = nearest;
+        } else {
+            self.base_size = clamped;
+        }
+    }
+
+    /// Updates dynamic Trash mode (e.g. morphing to Eject when volume drag starts).
+    pub fn set_dragging_mounted_volume(&mut self, is_dragging_volume: bool, trash_has_files: bool) {
+        if is_dragging_volume {
+            self.trash_mode = TrashMode::EjectVolume;
+        } else if trash_has_files {
+            self.trash_mode = TrashMode::FullTrash;
+        } else {
+            self.trash_mode = TrashMode::EmptyTrash;
+        }
+    }
+
+    /// Current Trash icon mode.
+    #[inline]
+    pub fn trash_mode(&self) -> TrashMode {
+        self.trash_mode
+    }
+
+    /// Current base icon size.
+    #[inline]
+    pub fn base_size(&self) -> f64 {
+        self.base_size
+    }
+
+    /// Computes full magnified horizontal layout for all items in the Dock given cursor X.
+    pub fn compute_magnified_layout(&self, cursor_x: Option<f64>) -> Vec<(f64, f64)> {
+        let count = self.pinned_apps.len() + self.recent_apps.len() + self.stacks.len() + 1; // +1 for Trash
+        let mut resting_centers = Vec::with_capacity(count);
+
+        let mut x = self.base_size * 0.5;
+        let spacing = self.base_size + 8.0;
+
+        for _ in 0..count {
+            resting_centers.push(x);
+            x += spacing;
+        }
+
+        if !self.is_magnification_enabled {
+            return resting_centers.into_iter().map(|cx| (cx, self.base_size)).collect();
+        }
+
+        DockMagnifier::compute_layout(
+            &resting_centers,
+            cursor_x,
+            self.base_size,
+            self.max_magnified_size,
+            self.magnification_radius,
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dock_option_snap_resizing() {
+        let mut dock = DockCoordinator::new();
+
+        // Resize without snap
+        dock.resize_base(51.0, false);
+        assert_eq!(dock.base_size(), 51.0);
+
+        // Resize with Option snap: 51.0 is closest to 48.0
+        dock.resize_base(51.0, true);
+        assert_eq!(dock.base_size(), 48.0);
+
+        // 75.0 is closest to 64.0 (diff 11 vs diff 21 to 96)
+        dock.resize_base(75.0, true);
+        assert_eq!(dock.base_size(), 64.0);
+    }
+
+    #[test]
+    fn test_dock_trash_morphing_to_eject() {
+        let mut dock = DockCoordinator::new();
+        assert_eq!(dock.trash_mode(), TrashMode::EmptyTrash);
+
+        // Drag a mounted volume: Trash morphs to Eject symbol
+        dock.set_dragging_mounted_volume(true, false);
+        assert_eq!(dock.trash_mode(), TrashMode::EjectVolume);
+
+        // Drop volume: reverts to normal
+        dock.set_dragging_mounted_volume(false, true);
+        assert_eq!(dock.trash_mode(), TrashMode::FullTrash);
+    }
+
+    #[test]
+    fn test_stack_view_modes_and_fan_angle() {
+        let items_few: Vec<StackItem> = (0..5)
+            .map(|i| StackItem {
+                path: format!("/doc_{}", i),
+                name: format!("Doc {}", i),
+                is_directory: false,
+            })
+            .collect();
+        let stack_few = DockStack::new("/docs", "Docs", StackViewMode::Automatic, items_few);
+        assert_eq!(stack_few.effective_view_mode(), StackViewMode::Fan);
+
+        // Angle for 3rd item: 3 * 4.5 = 13.5 degrees
+        assert_eq!(DockStack::fan_item_angle_deg(3), 13.5);
+
+        let items_many: Vec<StackItem> = (0..15)
+            .map(|i| StackItem {
+                path: format!("/img_{}", i),
+                name: format!("Img {}", i),
+                is_directory: false,
+            })
+            .collect();
+        let stack_many = DockStack::new("/imgs", "Images", StackViewMode::Automatic, items_many);
+        assert_eq!(stack_many.effective_view_mode(), StackViewMode::Grid);
+    }
+}

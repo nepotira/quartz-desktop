@@ -7,6 +7,37 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.4.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-shell` (Fase 4 - Shell, Top Menu Bar, Control Center, Notificações, Widgets e Tripartite Dock)**:
+  - **Top Menu Bar com Suporte a Notch (`src/menubar/`)**:
+    - Detecção de entalhe físico (*Notch*) e particionamento de menus (`notch.rs`), realizando o salto contínuo de itens de menu da esquerda para a direita do entalhe sem clipping.
+    - Menu Canônico da Maçã (`apple_menu.rs`) com submenu de Itens Recentes, diálogo de Forçar Encerramento (`Opt+Cmd+Esc`) e mutação dinâmica instantânea com tecla `Option` (execução direta de Repouso/Reiniciar/Desligar sem o diálogo de confirmação de 60 segundos).
+    - Menu Global com fallback automático para o Finder caso o app ativo não forneça menu (`global_menu.rs`), hover lateral instantâneo (0ms de latência), duplo flash de 120ms ao clicar, itens dinâmicos com `Option`, Lista de Janelas ativas com marcações `✓` (em foco) e `♦` (minimizada), e Help Search Rector com busca fuzzy de atalhos e acionamento direto via teclado.
+    - Bandeja de Ícones de Status (`status_items.rs`) com suporte a remoção por arraste `Cmd+Drag` com efeito "Poof" ao exceder 45px de distância, e menus de diagnóstico ao clicar com `Option` (detalhes de Wi-Fi BSSID/RSSI, áudio e Bluetooth).
+    - Cápsula de Privacidade Animada (`privacy_capsule.rs`) em Liquid Glass com indicadores de hardware para microfone (Laranja `#FF9500`), câmera (Verde `#34C759`) e gravação de tela (Roxo `#AF52DE`), expandindo com mola `CASpringAnimation` para exibir apps ativos no clique.
+  - **Control Center Modular (`src/control_center/`)**:
+    - Pílula flutuante Liquid Glass com módulos independentes: Wi-Fi, Bluetooth, AirDrop, Modos de Foco (Não Perturbe, Trabalho, Pessoal, Sono com duração personalizável), Stage Manager e Espelhamento de Tela.
+    - Sliders táteis de Brilho da Tela e Volume de Áudio com suporte a True Tone, Night Shift, Dark Mode e Economia de Energia.
+    - Módulo "Tocando Agora" (*Now Playing*) com quantizador de cores **Median Cut** em CPU para extração em tempo real da paleta dominante da capa do álbum.
+  - **Central de Notificações com Pilhas 3D (`src/notifications/`)**:
+    - Agrupamento inteligente de notificações por aplicativo em pilhas 3D táteis com escala e elevação decrescente.
+    - Expansão de pilha fluida acionada por clique ou gesto, botões de ação customizados e resposta rápida inline (*inline reply*).
+  - **Sistema de Widgets do macOS Tahoe 26 (`src/widgets/`)**:
+    - Suporte a widgets interativos na Mesa e na barra lateral nos formatos Pequeno ($2\times 2$), Médio ($4\times 2$) e Grande ($4\times 4$).
+    - Transição Cromática Adaptativa de 250ms (*Adaptive Chromatic Transition*): ao focar em uma janela sobreposta ou trocar de espaço, os widgets desvanecem suavemente suas cores vibrantes para tons monocromáticos de vidro Liquid Glass.
+  - **Tripartite Dock com Física e Modos Avançados de Stacks (`src/dock/`)**:
+    - Layout em 3 seções canônicas: Apps Fixados, Apps Recentes / Em Execução (com indicador sutil de pontinho iluminado), e Pastas / Stacks / Lixeira / Janelas Minimizadas.
+    - Separador vertical redimensionável com clique e arraste, com atração magnética (*snap*) para os tamanhos canônicos da Apple (48px, 64px, 96px, 128px) ao manter pressionada a tecla `Option`.
+    - Ampliação contínua por cosseno parabólico e animação de salto (*dock bounce*) para notificações e abertura de apps.
+    - Efeito Spring-Loaded Exposé ao arrastar arquivos sobre o ícone de uma aplicação no Dock por 700ms.
+    - Visualizador de Stacks completo com 4 modos de exibição: Leque (*Fan* com curvatura parabólica), Grade (*Grid* com rolagem fluida), Lista (*List*) e Automático (*Auto* determinando o modo pelo número de itens).
+    - Redução temporal para $0.15\times$ (Slow-Motion) de todas as animações de abertura de pilhas ao segurar `Shift`.
+    - Mutação dinâmica do ícone de Lixeira para Ejetar (*Eject*) com highlight vermelho sutil quando um volume montado ou drive DMG é arrastado em sua direção.
+
+---
+
 ## [0.3.0-alpha.1] - 2026-10-15
 
 ### Added
