@@ -11,8 +11,8 @@ members = [
     "crates/qz-screenshot",
     "crates/qz-daemons",
     "crates/qz-session-lock",
+    "crates/qz-toolkit",
     # Planned workspace crates added in subsequent phases:
-    # "crates/qz-toolkit",
     # "crates/apps/qz-settings",
     # "crates/apps/qz-preview",
     # "crates/apps/qz-activity-monitor",
