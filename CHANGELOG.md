@@ -1,0 +1,60 @@
+# Registro de Alterações (Changelog)
+
+Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
+
+O formato baseia-se no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
+e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/lang/pt-BR/).
+
+---
+
+## [0.2.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate Gráfica `qz-renderer`**:
+  - Implementação completa da infraestrutura de renderização híbrida Vulkan 1.3 e OpenGL ES 3.2.
+  - Módulo de importação de memória Zero-Copy DMA-BUF (`crates/qz-renderer/src/dmabuf.rs`) via extensões `VK_EXT_external_memory_dma_buf` e `VK_EXT_image_drm_format_modifier`.
+  - Mapeamento direto de formatos DRM FourCC Linux (`DRM_FORMAT_ARGB8888`, `DRM_FORMAT_XRGB8888`, `DRM_FORMAT_ABGR8888`, `DRM_FORMAT_XBGR8888`) para `vk::Format` sem cópia de buffer CPU-GPU.
+- **Coleção Completa de Shaders GLSL 450 Compiláveis**:
+  - `kawase_down.frag` e `kawase_up.frag`: Pirâmide Dual-Kawase Blur de 8 passes divididos em 4 passes de downsampling e 4 passes de upsampling com preservação de largura de banda de memória em resoluções 1/2, 1/4, 1/8 e 1/16.
+  - `liquid_glass_tahoe.frag`: Shader de lente refrativa Liquid Glass do macOS Tahoe 26 com SDF superelipse $G^2$ (Squircle com norma $L^4$), dispersão cromática radial e de borda, saturação luma Rec.709 ($S=1.85$), blending dinâmico de vivacidade (Color Burn no Dark Mode / Color Dodge no Light Mode), rim highlight especular de 1px sensível à direção da luz e dithering procedural anti-banding via ruído *Interleaved Gradient Noise*.
+  - `genie.vert` e `genie.frag`: Shaders da malha de tesselação $64 \times 64$ ($4225$ vértices e $24576$ índices) com deformação não-linear baseada em curvas suaves de Hermite para minimizar janelas no Dock com Efeito Gênio.
+  - `shadow_sdf.frag`: Sombra analítica de dupla camada da Apple (Ambient Occlusion $\sigma=4.0\text{px}$ + Penumbra Profunda $\sigma=38.0\text{px}$) resolvida por integração gaussiana contínua via aproximação de função erro ($\text{erf}$), além de perfil dedicado para *Floating Glass Pills* ($\sigma=10.0\text{px}$).
+  - `catmull_rom.frag`: Filtro bicúbico de reconstrução Catmull-Rom de 9 amostras para escala Retina a partir de buffers legados renderizados em `@2x` inteiro.
+  - `cube_3d.vert` e `cube_3d.frag`: Projeção de perspectiva e matriz MVP para a rotação de cubo 3D da Troca Rápida de Usuário (*Fast User Switching*).
+- **Pipelines Rust em `crates/qz-renderer/src/pipeline/`**:
+  - `kawase.rs`: Gerenciador da cadeia de pirâmide e cálculo de push constants `half_pixel` e `offset`.
+  - `liquid_glass.rs`: Construtor de uniforms de vidro para janelas normais e pílulas flutuantes, incluindo avaliador de SDF squircle em CPU.
+  - `genie.rs`: Gerador geométrico estático da malha de grade $64 \times 64$.
+  - `shadow.rs`: Calculador de extensões de margem de sombra analítica para tesouramento de janelas.
+  - `catmull_rom.rs`: Calculador de fatores de escala e resolução física para display Retina.
+  - `cube_3d.rs`: Solver de matriz MVP com câmera de $45^\circ$ FOV e rotação angular suave acionada por física de mola.
+- **Integração Contínua (CI) em Nuvem com GitHub Actions**:
+  - Arquivo `.github/workflows/ci.yml` configurado com runners Ubuntu para compilação, testes e validação automática de todos os alvos e sintaxe de protocolos XML a cada `push`.
+  - Autenticação e vinculação ao repositório oficial [nepotira/quartz-desktop](https://github.com/nepotira/quartz-desktop).
+
+---
+
+## [0.1.0-alpha.1] - 2026-10-15
+
+### Added
+- **Arquitetura do Workspace Root**:
+  - `Cargo.toml` raiz do workspace configurado para Rust Edition 2024, resolução 3, dependências de alto nível (`smithay`, `wayland-server`, `ash`, `glow`, `glam`, `thiserror`, `anyhow`, etc.) e perfis de release otimizados (`lto = "thin"`, `codegen-units = 1`, `opt-level = 3`).
+- **Protocolos Wayland Customizados (XML)**:
+  - `protocol/quartz-shell-unstable-v1.xml`: Protocolo para Liquid Glass, Floating Glass Pills (margens de 8px), semáforos (Traffic Lights), estado dirty de documento não salvo, proxy icons arrastáveis, sheets modais e abas universais destacáveis.
+  - `protocol/quartz-global-menu-v1.xml`: Protocolo para Global Menu Bar, mutação dinâmica de rótulos com a tecla `Option`, sincronização do rodapé do menu Janela (`✓` ativa, `♦` minimizada), Help Search Rector com vetor de posição para seta azul flutuante e flash de seleção de item.
+  - `protocol/quartz-workspace-ipc-v1.xml`: Protocolo de IPC privilegiado para captura de tela com canal alfa e sombra real de dupla camada, Quick Look com expansão retangular a 120fps a partir do ícone, PiP magnético e Desktop Reveal.
+- **Crate de Física de Animação `qz-animation`**:
+  - Solver analítico fechado de equações diferenciais ordinárias (EDO) de 2ª ordem para oscilador harmônico amortecido em tempo contínuo $C^2$ (regimes sub-amortecido, criticamente amortecido e super-amortecido).
+  - Suporte a redirecionamento contínuo em pleno voo (`retarget`) sem sobressaltos ou descontinuidades na velocidade.
+  - Presets físicos oficiais: `mission_control()`, `window_open()`, `dock_bounce()`, `stage_manager()`, `rubber_return()` e `cursor_shake()`.
+  - Abstrações multidimensionais `Spring2D` e `SpringRect`.
+  - Equação hiperbólica de elasticidade Cocoa (Rubber-Banding) com transformações direta e inversa.
+  - Detector vetorial "Shake to Find Cursor" com janela deslizante de 400ms, limiar de velocidade $>1200\text{px/s}$, inversão angular $>120^\circ$ e mola de expansão de $1.0\times$ para $8.0\times$.
+  - Magnificação parabólica por cosseno elevado e deslocamento conservativo de ícones no Dock.
+- **Entrada Inteligente e Click-Through em `qz-compositor`**:
+  - Smart Keymapper (`crates/qz-compositor/src/input/keymapper.rs`) com tradução de `Cmd` $\leftrightarrow$ `Ctrl` em aplicativos gráficos e preservação estrita de sinais POSIX (`Ctrl+C` = SIGINT, `Ctrl+Z` = SIGTSTP, `Ctrl+D` = EOF) em emuladores de terminal.
+  - Navegação universal de texto Cocoa/Emacs (`Ctrl+A/E/D/B/F/N/P/Y`, `Opt+Setas`, `Cmd+Setas`, `Opt+Backspace`, `Cmd+Backspace`).
+  - Ajuste fino de volume e brilho em $1/4$ de passo (64 níveis discretos) via `Shift + Option`.
+  - Despachador de Click-Through (`crates/qz-compositor/src/input/click_through.rs`) permitindo operar controles e semáforos de janelas em segundo plano segurando `Cmd` sem alterar a profundidade Z-order e sem transferir o foco de teclado.
+  - Roteamento de scroll desfocado diretamente para a superfície sob o cursor do mouse.
+  - Temporizador de 500ms no botão verde para ativação do Window Tiling Popover.
