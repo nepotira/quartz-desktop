@@ -29,7 +29,7 @@ TRAFFIC_GREEN = (39 / 255.0, 201 / 255.0, 63 / 255.0)          # #27C93F
 TRAFFIC_GREEN_BORDER = (26 / 255.0, 171 / 255.0, 41 / 255.0)    # #1AAB29
 TRAFFIC_GREEN_GLYPH = (0 / 255.0, 101 / 255.0, 0 / 255.0)      # #006500
 
-ACCENT_BLUE = (0 / 255.0, 122 / 255.0, 255 / 255.0)           # #007AFF
+ACCENT_BLUE = (10 / 255.0, 96 / 255.0, 255 / 255.0)           # #0A60FF macOS Solid Blue
 
 # ==============================================================================
 # PROCEDURAL VECTOR DRAWING PRIMITIVES (ZERO EXTERNAL FONTS / ZERO TOFU)
@@ -103,21 +103,25 @@ def draw_wifi_icon(cr, cx, cy, size, color=(1.0, 1.0, 1.0, 1.0)):
         cr.stroke()
     cr.restore()
 
-def draw_battery_icon(cr, x, y, w, h, charge=1.0, color=(1.0, 1.0, 1.0, 1.0)):
-    """Draws macOS Battery icon (body pill, terminal nub, level fill)."""
+def draw_battery_icon_tahoe(cr, x, y, charge=1.0):
+    """Draws exact macOS Tahoe battery icon: 22x11px, 1px contour 45%, pure white fill (Zero Neon Green!)."""
     cr.save()
-    cr.set_source_rgba(*color)
-    cr.set_line_width(1.2)
-    draw_squircle(cr, x, y, w, h, 3)
+    # 1. 1px contour rgba(255, 255, 255, 0.45)
+    cr.set_source_rgba(1.0, 1.0, 1.0, 0.45)
+    cr.set_line_width(1.0)
+    draw_squircle(cr, x, y, 22.0, 11.0, 2.5)
     cr.stroke()
-    # Nub
-    cr.rectangle(x + w + 1, y + h * 0.28, 1.8, h * 0.44)
+
+    # 2. Positive terminal nub on the right: 1.5 x 4 px
+    cr.set_source_rgba(1.0, 1.0, 1.0, 0.45)
+    cr.rectangle(x + 22.5, y + 3.5, 1.5, 4.0)
     cr.fill()
-    # Level fill
-    fill_w = max(0.0, (w - 4) * charge)
+
+    # 3. Inner fill: PURE WHITE (#FFFFFF) with 1.5px inner margin!
+    fill_w = max(0.0, 19.0 * charge)
     if fill_w > 0:
-        cr.set_source_rgba(0.28, 0.85, 0.45, 0.95)
-        draw_squircle(cr, x + 2, y + 2, fill_w, h - 4, 1.5)
+        cr.set_source_rgb(1.0, 1.0, 1.0)
+        draw_squircle(cr, x + 1.5, y + 1.5, fill_w, 8.0, 1.5)
         cr.fill()
     cr.restore()
 
@@ -163,15 +167,15 @@ def draw_chevron(cr, cx, cy, size, direction="left", color=(1.0, 1.0, 1.0, 1.0))
     cr.set_line_cap(cairo.LINE_CAP_ROUND)
     cr.set_line_join(cairo.LINE_JOIN_ROUND)
     s = size / 16.0
-    cr.set_line_width(1.8 * s)
+    cr.set_line_width(1.6 * s)
     if direction == "left":
-        cr.move_to(cx + 2.5 * s, cy - 5.0 * s)
+        cr.move_to(cx + 2.5 * s, cy - 4.5 * s)
         cr.line_to(cx - 2.5 * s, cy)
-        cr.line_to(cx + 2.5 * s, cy + 5.0 * s)
+        cr.line_to(cx + 2.5 * s, cy + 4.5 * s)
     else:
-        cr.move_to(cx - 2.5 * s, cy - 5.0 * s)
+        cr.move_to(cx - 2.5 * s, cy - 4.5 * s)
         cr.line_to(cx + 2.5 * s, cy)
-        cr.line_to(cx - 2.5 * s, cy + 5.0 * s)
+        cr.line_to(cx - 2.5 * s, cy + 4.5 * s)
     cr.stroke()
     cr.restore()
 
@@ -227,7 +231,6 @@ def draw_sidebar_icon(cr, kind, cx, cy, size, color=(0.0, 0.48, 1.0, 1.0)):
         cr.line_to(cx + 2.5 * s, cy)
         cr.stroke()
     elif kind == "apps":
-        # Compass / Ruler A shape
         cr.move_to(cx, cy - 6 * s)
         cr.line_to(cx - 4.5 * s, cy + 5 * s)
         cr.move_to(cx, cy - 6 * s)
@@ -293,107 +296,140 @@ def draw_sidebar_icon(cr, kind, cx, cy, size, color=(0.0, 0.48, 1.0, 1.0)):
     cr.restore()
 
 # ==============================================================================
-# REAL macOS TAHOE 26 FOLDER & DOCK ARTWORK (PROCEDURAL SDFS / VECTORS)
+# OFFICIAL macOS TAHOE 26 FOLDER & 3D DOCK ARTWORK (NO MOCKUPS / NO MS PAINT)
 # ==============================================================================
 
-def draw_macos_folder(cr, x, y, w, h):
-    """Draws real macOS Tahoe folder (back plate with tab, front sheet, gradient, specular rim)."""
+def draw_exact_macos_folder(cr, x, y, w, h):
+    """Draws real macOS Tahoe folder (continuous S-curve rear tab, pocket AO, celestial gradient, grooves)."""
     cr.save()
-    # 1. Projected shadow under the folder
+    # 1. Soft projected shadow below the folder
     cr.set_source_rgba(0.0, 0.0, 0.0, 0.28)
     draw_squircle(cr, x + 2, y + 6, w - 4, h - 2, 8)
     cr.fill()
 
-    # 2. Back Sheet Tab (upper-left)
-    tab_w = w * 0.44
-    tab_h = h * 0.28
-    cr.set_source_rgb(0.12, 0.48, 0.88)
-    draw_squircle(cr, x, y, tab_w, tab_h, 5)
+    # 2. Rear Sheet with smooth S-curve transition on tab (x=0.34..0.48)
+    tab_y = y + h * 0.14
+    body_top_y = y + h * 0.22
+    cr.save()
+    cr.new_sub_path()
+    cr.move_to(x + 5, body_top_y)
+    cr.line_to(x + w * 0.34, body_top_y)
+    # S-curve up to tab
+    cr.curve_to(x + w * 0.38, body_top_y, x + w * 0.40, tab_y, x + w * 0.44, tab_y)
+    cr.line_to(x + 5, tab_y)
+    cr.close_path()
+    # Apple Rear Tab Blue #228BE6
+    pat_back = cairo.LinearGradient(x, tab_y, x, y + h * 0.86)
+    pat_back.add_color_stop_rgb(0.0, 0.24, 0.65, 0.96)
+    pat_back.add_color_stop_rgb(1.0, 0.10, 0.44, 0.80)
+    cr.set_source(pat_back)
     cr.fill()
 
-    # 3. Back Sheet Body
-    cr.set_source_rgb(0.14, 0.52, 0.92)
-    draw_squircle(cr, x, y + h * 0.12, w * 0.96, h * 0.88, 7)
+    # Rear main body
+    draw_squircle(cr, x + 2, body_top_y, w - 4, h * 0.68, 6)
     cr.fill()
 
-    # 4. Front Sheet (radiant Tahoe cyan-blue gradient #74D8FF -> #0084FF)
-    front_y = y + h * 0.24
-    front_h = h * 0.76
-    pat = cairo.LinearGradient(x, front_y, x, front_y + front_h)
-    pat.add_color_stop_rgb(0.0, 0.45, 0.84, 1.00) # Radiant Cyan Top #74D8FF
-    pat.add_color_stop_rgb(1.0, 0.02, 0.52, 0.98) # Deep Apple Blue Bottom #0084FF
-    cr.set_source(pat)
+    # Specular rim on top of rear tab
+    cr.set_source_rgba(1.0, 1.0, 1.0, 0.35)
+    cr.rectangle(x + 6, tab_y + 0.5, w * 0.36, 1.0)
+    cr.fill()
+    cr.restore()
+
+    # 3. Pocket AO Shadow above y = 0.28 (seamless, no hard black band!)
+    pocket_y = y + h * 0.28
+    cr.set_source_rgba(0.0, 0.15, 0.40, 0.22)
+    cr.rectangle(x + 4, pocket_y - 3, w - 8, 3)
+    cr.fill()
+
+    # 4. Front Cover Sheet with Apple Celestial Gradient (#72D6FF -> #127DFA)
+    front_y = y + h * 0.28
+    front_h = h * 0.60
+    pat_front = cairo.LinearGradient(x, front_y, x, front_y + front_h)
+    pat_front.add_color_stop_rgb(0.0, 0.45, 0.84, 1.00) # #72D6FF Radiant Cyan Top
+    pat_front.add_color_stop_rgb(1.0, 0.07, 0.49, 0.98) # #127DFA Deep Apple Blue Bottom
+    cr.set_source(pat_front)
     draw_squircle(cr, x, front_y, w, front_h, 7)
     cr.fill()
 
-    # 5. Inner shadow separating front and back sheets
-    cr.set_source_rgba(0.0, 0.15, 0.40, 0.22)
-    cr.rectangle(x + 2, front_y, w - 4, 2)
+    # 5. Luminous white specular highlight on top lip (y = 0.286)
+    cr.set_source_rgba(0.90, 0.98, 1.0, 0.70)
+    cr.rectangle(x + 4, front_y + 0.5, w - 8, 1.2)
     cr.fill()
 
-    # 6. Specular Top Rim Highlight (1px white line)
-    spec = cairo.LinearGradient(x, front_y, x + w, front_y)
-    spec.add_color_stop_rgba(0.0, 1.0, 1.0, 1.0, 0.1)
-    spec.add_color_stop_rgba(0.5, 1.0, 1.0, 1.0, 0.65)
-    spec.add_color_stop_rgba(1.0, 1.0, 1.0, 1.0, 0.1)
-    cr.set_source(spec)
-    cr.rectangle(x + 4, front_y, w - 8, 1.2)
+    # 6. Two subtle horizontal base grooves near bottom (y = 0.82 and y = 0.845)
+    cr.set_source_rgba(0.0, 0.15, 0.45, 0.12)
+    cr.rectangle(x + 6, front_y + front_h - 8, w - 12, 1)
+    cr.rectangle(x + 6, front_y + front_h - 5, w - 12, 1)
     cr.fill()
 
     cr.restore()
 
 def draw_dock_icon(cr, it_id, x, y, sz):
-    """Draws real vector artwork for all macOS Dock icons."""
+    """Draws real 3D vector artwork for all macOS Dock icons."""
     r = sz * 0.22
     cr.save()
 
     if it_id == "finder":
-        # Bicolor smiling face
+        # 3.1. FINDER (Rosto 3D Bicolor com Curva Senoidal, Olhos em Pílula e Sorriso Curvo)
         draw_squircle(cr, x, y, sz, sz, r)
         cr.clip()
-        # Right pale blue face
-        cr.set_source_rgb(0.92, 0.96, 1.0)
+        # Right pale face
+        pat_r = cairo.LinearGradient(x, y, x, y + sz)
+        pat_r.add_color_stop_rgb(0.0, 0.97, 0.99, 1.00)
+        pat_r.add_color_stop_rgb(1.0, 0.82, 0.90, 0.97)
+        cr.set_source(pat_r)
         cr.paint()
-        # Left vivid blue face
+
+        # Left vivid blue face with curved nose split
         cr.save()
         cr.new_sub_path()
         cr.move_to(x, y)
-        cr.line_to(x + sz * 0.52, y)
-        cr.curve_to(x + sz * 0.44, y + sz * 0.45, x + sz * 0.54, y + sz * 0.55, x + sz * 0.50, y + sz)
+        cr.line_to(x + sz * 0.50, y)
+        cr.curve_to(x + sz * 0.44, y + sz * 0.35, x + sz * 0.42, y + sz * 0.52, x + sz * 0.56, y + sz * 0.52)
+        cr.curve_to(x + sz * 0.54, y + sz * 0.70, x + sz * 0.50, y + sz * 0.85, x + sz * 0.52, y + sz)
         cr.line_to(x, y + sz)
         cr.close_path()
-        pat = cairo.LinearGradient(x, y, x, y + sz)
-        pat.add_color_stop_rgb(0.0, 0.18, 0.62, 0.98)
-        pat.add_color_stop_rgb(1.0, 0.08, 0.42, 0.88)
-        cr.set_source(pat)
+        pat_l = cairo.LinearGradient(x, y, x, y + sz)
+        pat_l.add_color_stop_rgb(0.0, 0.22, 0.72, 1.00)
+        pat_l.add_color_stop_rgb(1.0, 0.06, 0.44, 0.90)
+        cr.set_source(pat_l)
         cr.fill()
         cr.restore()
 
-        # Eyes
-        cr.set_source_rgb(0.08, 0.14, 0.24)
-        cr.rectangle(x + sz * 0.24, y + sz * 0.35, sz * 0.065, sz * 0.15)
-        cr.rectangle(x + sz * 0.70, y + sz * 0.35, sz * 0.065, sz * 0.15)
+        # Continuous nose contour line
+        cr.set_source_rgb(0.08, 0.15, 0.26)
+        cr.set_line_width(sz * 0.034)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_JOIN_ROUND)
+        cr.move_to(x + sz * 0.48, y + sz * 0.24)
+        cr.line_to(x + sz * 0.44, y + sz * 0.52)
+        cr.line_to(x + sz * 0.56, y + sz * 0.52)
+        cr.stroke()
+
+        # Vertical pill eyes
+        cr.rectangle(x + sz * 0.22, y + sz * 0.34, sz * 0.06, sz * 0.16)
+        cr.rectangle(x + sz * 0.72, y + sz * 0.34, sz * 0.06, sz * 0.16)
         cr.fill()
 
-        # Nose
-        cr.set_line_width(sz * 0.04)
-        cr.set_line_cap(cairo.LINE_CAP_ROUND)
-        cr.move_to(x + sz * 0.48, y + sz * 0.32)
-        cr.line_to(x + sz * 0.46, y + sz * 0.56)
-        cr.line_to(x + sz * 0.54, y + sz * 0.56)
+        # Wide curved smile
+        cr.new_sub_path()
+        cr.arc(x + sz * 0.50, y + sz * 0.52, sz * 0.26, math.radians(25), math.radians(155))
         cr.stroke()
 
-        # Smile
-        cr.new_sub_path()
-        cr.arc(x + sz * 0.50, y + sz * 0.54, sz * 0.24, math.radians(20), math.radians(160))
-        cr.stroke()
+        # Inner 3D bevel & top specular highlight
+        spec = cairo.LinearGradient(x, y, x, y + sz * 0.3)
+        spec.add_color_stop_rgba(0.0, 1.0, 1.0, 1.0, 0.35)
+        spec.add_color_stop_rgba(1.0, 1.0, 1.0, 1.0, 0.0)
+        cr.set_source(spec)
+        cr.rectangle(x, y, sz, sz * 0.3)
+        cr.fill()
 
     elif it_id == "launchpad":
+        # 3.6. LAUNCHPAD (Grade 3x3 de Mini-Squircles Coloridos)
         draw_squircle(cr, x, y, sz, sz, r)
         cr.clip()
         cr.set_source_rgb(0.16, 0.18, 0.24)
         cr.paint()
-        # 3x3 rainbow mini-squircles
         colors = [
             (0.95, 0.35, 0.30), (0.98, 0.60, 0.20), (0.95, 0.85, 0.25),
             (0.30, 0.85, 0.45), (0.20, 0.75, 0.95), (0.15, 0.50, 0.95),
@@ -412,102 +448,142 @@ def draw_dock_icon(cr, it_id, x, y, sz):
                 idx += 1
 
     elif it_id == "safari":
+        # 3.2. SAFARI (Bússola Real com 36 Marcações Polares e Agulha Bipartida 3D)
         draw_squircle(cr, x, y, sz, sz, r)
         cr.clip()
-        # Royal Blue Radial gradient
-        pat = cairo.RadialGradient(x + sz * 0.5, y + sz * 0.5, sz * 0.1, x + sz * 0.5, y + sz * 0.5, sz * 0.7)
-        pat.add_color_stop_rgb(0.0, 0.15, 0.60, 0.98)
-        pat.add_color_stop_rgb(1.0, 0.04, 0.28, 0.75)
-        cr.set_source(pat)
+        cr.set_source_rgb(0.96, 0.97, 0.99)
         cr.paint()
-
-        # Compass dial ring & graduation ticks
         cx, cy = x + sz * 0.5, y + sz * 0.5
-        cr.set_source_rgba(1, 1, 1, 0.35)
+        pat = cairo.LinearGradient(x, y, x, y + sz)
+        pat.add_color_stop_rgb(0.0, 0.16, 0.74, 0.99)
+        pat.add_color_stop_rgb(1.0, 0.04, 0.42, 0.92)
+        cr.set_source(pat)
+        cr.arc(cx, cy, sz * 0.36, 0, 2 * math.pi)
+        cr.fill()
+        # 36 polar ticks
+        cr.set_source_rgba(0.95, 0.98, 1.0, 0.85)
         cr.set_line_width(1.0)
-        cr.arc(cx, cy, sz * 0.34, 0, 2 * math.pi)
-        cr.stroke()
-        for deg in range(0, 360, 30):
-            rad = math.radians(deg)
-            cr.move_to(cx + math.cos(rad) * sz * 0.32, cy + math.sin(rad) * sz * 0.32)
-            cr.line_to(cx + math.cos(rad) * sz * 0.36, cy + math.sin(rad) * sz * 0.36)
+        for i in range(36):
+            rad = math.radians(i * 10)
+            cr.move_to(cx + math.cos(rad) * sz * 0.29, cy + math.sin(rad) * sz * 0.29)
+            cr.line_to(cx + math.cos(rad) * sz * 0.33, cy + math.sin(rad) * sz * 0.33)
             cr.stroke()
-
-        # 3D Compass Needle tilted at 45 degrees
+        # 3D Needle at -45 deg
         cr.save()
         cr.translate(cx, cy)
         cr.rotate(math.radians(-45))
-        # Red North needle
-        cr.set_source_rgb(0.95, 0.20, 0.18)
-        cr.move_to(0, -sz * 0.34)
-        cr.line_to(sz * 0.08, 0)
-        cr.line_to(-sz * 0.08, 0)
+        # Needle drop shadow
+        cr.set_source_rgba(0.0, 0.1, 0.3, 0.35)
+        cr.move_to(0, -sz * 0.34 + 2)
+        cr.line_to(sz * 0.07, 2)
+        cr.line_to(-sz * 0.07, 2)
         cr.close_path()
         cr.fill()
-        # White South needle
-        cr.set_source_rgb(0.96, 0.98, 1.0)
+        cr.move_to(0, sz * 0.34 + 2)
+        cr.line_to(sz * 0.07, 2)
+        cr.line_to(-sz * 0.07, 2)
+        cr.close_path()
+        cr.fill()
+        # Red North Left facet (bright)
+        cr.set_source_rgb(1.00, 0.23, 0.19)
+        cr.move_to(0, -sz * 0.34)
+        cr.line_to(sz * 0.07, 0)
+        cr.line_to(0, 0)
+        cr.close_path()
+        cr.fill()
+        # Red North Right facet (shaded)
+        cr.set_source_rgb(0.85, 0.16, 0.14)
+        cr.move_to(0, -sz * 0.34)
+        cr.line_to(-sz * 0.07, 0)
+        cr.line_to(0, 0)
+        cr.close_path()
+        cr.fill()
+        # White South Left facet (bright)
+        cr.set_source_rgb(0.98, 0.98, 1.00)
         cr.move_to(0, sz * 0.34)
-        cr.line_to(sz * 0.08, 0)
-        cr.line_to(-sz * 0.08, 0)
+        cr.line_to(sz * 0.07, 0)
+        cr.line_to(0, 0)
+        cr.close_path()
+        cr.fill()
+        # White South Right facet (shaded)
+        cr.set_source_rgb(0.82, 0.84, 0.88)
+        cr.move_to(0, sz * 0.34)
+        cr.line_to(-sz * 0.07, 0)
+        cr.line_to(0, 0)
         cr.close_path()
         cr.fill()
         # Center pivot
-        cr.set_source_rgb(0.85, 0.88, 0.92)
-        cr.arc(0, 0, sz * 0.045, 0, 2 * math.pi)
+        cr.set_source_rgb(0.88, 0.90, 0.94)
+        cr.arc(0, 0, sz * 0.035, 0, 2 * math.pi)
         cr.fill()
         cr.restore()
 
     elif it_id == "terminal":
+        # 3.5. TERMINAL (Obsidiana Metálica com Segmento Vetorial >_)
         draw_squircle(cr, x, y, sz, sz, r)
         cr.clip()
         cr.set_source_rgb(0.12, 0.13, 0.16)
         cr.paint()
-        # Title seam
         cr.set_source_rgba(1, 1, 1, 0.10)
         cr.rectangle(x, y + sz * 0.22, sz, 1)
         cr.fill()
-        # Glowing green prompt segments
         cr.set_source_rgb(0.25, 0.90, 0.45)
         cr.set_line_width(sz * 0.055)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         cr.set_line_join(cairo.LINE_JOIN_ROUND)
-        # >
         cr.move_to(x + sz * 0.20, y + sz * 0.40)
         cr.line_to(x + sz * 0.35, y + sz * 0.52)
         cr.line_to(x + sz * 0.20, y + sz * 0.64)
         cr.stroke()
-        # _
         cr.move_to(x + sz * 0.44, y + sz * 0.64)
         cr.line_to(x + sz * 0.68, y + sz * 0.64)
         cr.stroke()
 
     elif it_id == "settings":
+        # 3.4. AJUSTES DO SISTEMA (Engrenagem Metálica 3D com Chanfro Cônico)
         draw_squircle(cr, x, y, sz, sz, r)
         cr.clip()
         pat = cairo.LinearGradient(x, y, x, y + sz)
-        pat.add_color_stop_rgb(0.0, 0.65, 0.68, 0.72)
-        pat.add_color_stop_rgb(1.0, 0.38, 0.40, 0.44)
+        pat.add_color_stop_rgb(0.0, 0.55, 0.57, 0.62)
+        pat.add_color_stop_rgb(1.0, 0.32, 0.34, 0.38)
         cr.set_source(pat)
         cr.paint()
-        # Concentric metallic gear
         cx, cy = x + sz * 0.5, y + sz * 0.5
-        cr.set_source_rgb(0.88, 0.90, 0.94)
-        # Gear wheel with 8 teeth
-        cr.arc(cx, cy, sz * 0.26, 0, 2 * math.pi)
+        # Gear shadow
+        cr.set_source_rgba(0.0, 0.0, 0.0, 0.35)
+        cr.arc(cx + 1, cy + 2, sz * 0.32, 0, 2 * math.pi)
         cr.fill()
-        for deg in range(0, 360, 45):
-            rad = math.radians(deg)
-            tx = cx + math.cos(rad) * sz * 0.28
-            ty = cy + math.sin(rad) * sz * 0.28
+        # 12-tooth gear with conical sheen
+        cr.set_source_rgb(0.85, 0.88, 0.92)
+        cr.arc(cx, cy, sz * 0.29, 0, 2 * math.pi)
+        cr.fill()
+        for i in range(12):
+            rad = math.radians(i * 30)
             cr.save()
-            cr.translate(tx, ty)
+            cr.translate(cx + math.cos(rad) * sz * 0.30, cy + math.sin(rad) * sz * 0.30)
             cr.rotate(rad)
-            cr.rectangle(-sz * 0.05, -sz * 0.05, sz * 0.10, sz * 0.10)
+            cr.rectangle(-sz * 0.035, -sz * 0.035, sz * 0.07, sz * 0.07)
             cr.fill()
             cr.restore()
-        # Center hole
-        cr.set_source_rgb(0.42, 0.44, 0.48)
-        cr.arc(cx, cy, sz * 0.11, 0, 2 * math.pi)
+        cr.set_source(pat)
+        cr.arc(cx, cy, sz * 0.21, 0, 2 * math.pi)
+        cr.fill()
+        # 3 Spokes
+        cr.set_source_rgb(0.85, 0.88, 0.92)
+        for i in range(3):
+            rad = math.radians(i * 120)
+            cr.save()
+            cr.translate(cx, cy)
+            cr.rotate(rad)
+            cr.rectangle(-sz * 0.03, 0, sz * 0.06, sz * 0.21)
+            cr.fill()
+            cr.restore()
+        # Center hub
+        cr.set_source_rgb(0.92, 0.94, 0.97)
+        cr.arc(cx, cy, sz * 0.09, 0, 2 * math.pi)
+        cr.fill()
+        cr.set_source_rgb(0.35, 0.37, 0.40)
+        cr.arc(cx, cy, sz * 0.045, 0, 2 * math.pi)
         cr.fill()
 
     elif it_id == "activity":
@@ -515,14 +591,12 @@ def draw_dock_icon(cr, it_id, x, y, sz):
         cr.clip()
         cr.set_source_rgb(0.10, 0.12, 0.16)
         cr.paint()
-        # Grid lines
         cr.set_source_rgba(1, 1, 1, 0.06)
         cr.set_line_width(1.0)
         for i in range(1, 4):
             cr.move_to(x, y + sz * (i * 0.25))
             cr.line_to(x + sz, y + sz * (i * 0.25))
             cr.stroke()
-        # Electrocardiogram pulse wave
         cr.set_source_rgb(0.20, 0.85, 0.45)
         cr.set_line_width(sz * 0.045)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
@@ -544,11 +618,9 @@ def draw_dock_icon(cr, it_id, x, y, sz):
         pat.add_color_stop_rgb(1.0, 0.12, 0.42, 0.78)
         cr.set_source(pat)
         cr.paint()
-        # Polaroid photo frame + mountain silhouette
         draw_squircle(cr, x + sz * 0.18, y + sz * 0.18, sz * 0.64, sz * 0.64, 4)
         cr.set_source_rgb(0.95, 0.96, 0.98)
         cr.fill()
-        # Photo image area (mountains)
         cr.set_source_rgb(0.20, 0.55, 0.85)
         cr.rectangle(x + sz * 0.24, y + sz * 0.24, sz * 0.52, sz * 0.42)
         cr.fill()
@@ -562,31 +634,55 @@ def draw_dock_icon(cr, it_id, x, y, sz):
         cr.fill()
 
     elif it_id == "trash":
+        # 3.3. LIXEIRA DO macOS (Cilindro Metálico 3D Prateado)
         draw_squircle(cr, x, y, sz, sz, r)
         cr.clip()
-        cr.set_source_rgb(0.22, 0.25, 0.30)
+        cr.set_source_rgb(0.20, 0.22, 0.26)
         cr.paint()
-        # Metallic wastebasket
         cx, cy = x + sz * 0.5, y + sz * 0.52
-        cr.set_source_rgb(0.75, 0.78, 0.84)
-        # Top rim
-        draw_squircle(cr, cx - sz * 0.28, cy - sz * 0.28, sz * 0.56, sz * 0.08, 2)
+        top_w = sz * 0.28
+        bot_w = sz * 0.21
+        body_h = sz * 0.58
+        pat = cairo.LinearGradient(cx - top_w, cy, cx + top_w, cy)
+        pat.add_color_stop_rgb(0.0, 0.58, 0.60, 0.65)
+        pat.add_color_stop_rgb(0.3, 0.88, 0.90, 0.94)
+        pat.add_color_stop_rgb(0.7, 0.65, 0.68, 0.72)
+        pat.add_color_stop_rgb(1.0, 0.52, 0.54, 0.58)
+        cr.set_source(pat)
+        cr.move_to(cx - top_w, cy - body_h * 0.45)
+        cr.line_to(cx + top_w, cy - body_h * 0.45)
+        cr.line_to(cx + bot_w, cy + body_h * 0.55)
+        cr.curve_to(cx + bot_w * 0.5, cy + body_h * 0.62, cx - bot_w * 0.5, cy + body_h * 0.62, cx - bot_w, cy + body_h * 0.55)
+        cr.close_path()
         cr.fill()
-        # Basket ribs
-        cr.set_line_width(sz * 0.035)
-        cr.set_line_cap(cairo.LINE_CAP_ROUND)
-        for dx in [-0.20, -0.10, 0.0, 0.10, 0.20]:
-            cr.move_to(cx + sz * dx, cy - sz * 0.22)
-            cr.line_to(cx + sz * dx * 0.8, cy + sz * 0.26)
+        # Vertical wire ribs
+        cr.set_source_rgba(0.20, 0.22, 0.26, 0.45)
+        cr.set_line_width(sz * 0.02)
+        for frac in [-0.6, -0.3, 0.0, 0.3, 0.6]:
+            cr.move_to(cx + top_w * frac, cy - body_h * 0.42)
+            cr.line_to(cx + bot_w * frac, cy + body_h * 0.54)
             cr.stroke()
-        # Bottom rim
-        draw_squircle(cr, cx - sz * 0.22, cy + sz * 0.26, sz * 0.44, sz * 0.06, 2)
+        # Top rim ellipse
+        cr.set_source_rgb(0.85, 0.88, 0.92)
+        cr.save()
+        cr.translate(cx, cy - body_h * 0.45)
+        cr.scale(top_w + sz * 0.02, sz * 0.08)
+        cr.arc(0, 0, 1.0, 0, 2 * math.pi)
+        cr.restore()
+        cr.fill()
+        # Dark inner hole
+        cr.set_source_rgb(0.22, 0.24, 0.28)
+        cr.save()
+        cr.translate(cx, cy - body_h * 0.45)
+        cr.scale(top_w - sz * 0.02, sz * 0.05)
+        cr.arc(0, 0, 1.0, 0, 2 * math.pi)
+        cr.restore()
         cr.fill()
 
     cr.restore()
 
     # Specular rim highlight on squircle edge
-    cr.set_source_rgba(1.0, 1.0, 1.0, 0.24)
+    cr.set_source_rgba(1.0, 1.0, 1.0, 0.28)
     cr.set_line_width(1.0)
     draw_squircle(cr, x, y, sz, sz, r)
     cr.stroke()
@@ -597,7 +693,6 @@ def draw_dock_icon(cr, it_id, x, y, sz):
 
 def draw_gaussian_shadow(cr, x, y, w, h, r, is_active=True):
     """Renders dual-layer analytical Gaussian erf shadow (Contact AO + Deep Penumbra)."""
-    # Layer 2: Deep Atmospheric Penumbra (sigma=38, dy=22, alpha=0.45)
     steps = 22
     max_d = 72.0
     sigma2 = 38.0
@@ -611,7 +706,6 @@ def draw_gaussian_shadow(cr, x, y, w, h, r, is_active=True):
         draw_squircle(cr, x - d, y - d + dy2, w + 2 * d, h + 2 * d, r + d * 0.5)
         cr.fill()
 
-    # Layer 1: Ambient Occlusion Contact (sigma=4, dy=2, alpha=0.30)
     for i in range(8, 0, -1):
         d = (i / 8.0) * 8.0
         alpha = 0.30 * math.exp(-(d * d) / 32.0) * (1.0 / 8.0) * 2.5
@@ -649,7 +743,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         else:
             self.fullscreen()
 
-        # Canvas & Backdrop Cache
+        # Canvas & Heavy Blurred Backdrop Cache
         self.cached_width = 0
         self.cached_height = 0
         self.wallpaper_surface = None
@@ -735,7 +829,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         key.connect("key-pressed", self.on_key_pressed)
         self.add_controller(key)
 
-        # 60Hz/120Hz Tick timer for springs & dock physics
         GLib.timeout_add(16, self.on_tick)
 
     def on_tick(self):
@@ -748,7 +841,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         return True
 
     def ensure_backdrop(self, width, height):
-        """Generates dynamic Tahoe 26 wallpaper and Dual-Kawase blurred backdrop."""
+        """Generates dynamic Tahoe 26 wallpaper and heavy multi-stage blurred backdrop (sigma >= 42px)."""
         if width == self.cached_width and height == self.cached_height and self.blurred_backdrop:
             return
 
@@ -759,7 +852,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         self.wallpaper_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         cr = cairo.Context(self.wallpaper_surface)
 
-        # Base deep oceanic gradient
         base_pat = cairo.LinearGradient(0, 0, width, height)
         base_pat.add_color_stop_rgb(0.0, 0.04, 0.14, 0.39)  # Deep Oceanic Blue #0A2463
         base_pat.add_color_stop_rgb(0.35, 0.23, 0.05, 0.64) # Midnight Violet #3A0CA3
@@ -768,12 +860,11 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.set_source(base_pat)
         cr.paint()
 
-        # Dynamic glowing fluid waves across screen (Magenta / Coral / Gold / Cyan)
         waves = [
-            ((0.98, 0.30, 0.45, 0.42), [(0.1, 0.8), (0.4, 0.3), (0.7, 0.7), (1.0, 0.2)]), # Coral wave
-            ((0.00, 0.82, 0.95, 0.38), [(0.0, 0.4), (0.3, 0.8), (0.6, 0.2), (0.9, 0.6)]), # Cyan wave
-            ((1.00, 0.72, 0.05, 0.30), [(0.2, 0.9), (0.5, 0.5), (0.8, 0.8), (1.0, 0.4)]), # Golden wave
-            ((0.55, 0.15, 0.90, 0.35), [(0.0, 0.2), (0.35, 0.6), (0.65, 0.3), (1.0, 0.7)]),# Violet wave
+            ((0.98, 0.30, 0.45, 0.42), [(0.1, 0.8), (0.4, 0.3), (0.7, 0.7), (1.0, 0.2)]),
+            ((0.00, 0.82, 0.95, 0.38), [(0.0, 0.4), (0.3, 0.8), (0.6, 0.2), (0.9, 0.6)]),
+            ((1.00, 0.72, 0.05, 0.30), [(0.2, 0.9), (0.5, 0.5), (0.8, 0.8), (1.0, 0.4)]),
+            ((0.55, 0.15, 0.90, 0.35), [(0.0, 0.2), (0.35, 0.6), (0.65, 0.3), (1.0, 0.7)]),
         ]
 
         for color, pts in waves:
@@ -790,20 +881,39 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.fill()
             cr.restore()
 
-        # 2. Dual-Kawase Downsample & Upsample Blur Pyramid (1/8 Resolution Filter)
-        down_w = max(1, width // 8)
-        down_h = max(1, height // 8)
-        down_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, down_w, down_h)
-        cr_down = cairo.Context(down_surf)
-        cr_down.scale(1.0 / 8.0, 1.0 / 8.0)
-        cr_down.set_source_surface(self.wallpaper_surface, 0, 0)
-        cr_down.get_source().set_filter(cairo.FILTER_BILINEAR)
-        cr_down.paint()
+        # 2. Heavy Multi-Stage Cascade Blur (1/4 -> 1/16 -> 1/32 with 5-tap neighborhood diffusion)
+        # Guarantees sigma >= 42px (zero sharp wallpaper lines show through)
+        s1 = cairo.ImageSurface(cairo.FORMAT_ARGB32, max(1, width // 4), max(1, height // 4))
+        c1 = cairo.Context(s1)
+        c1.scale(0.25, 0.25)
+        c1.set_source_surface(self.wallpaper_surface, 0, 0)
+        c1.get_source().set_filter(cairo.FILTER_BILINEAR)
+        c1.paint()
+
+        s2 = cairo.ImageSurface(cairo.FORMAT_ARGB32, max(1, width // 16), max(1, height // 16))
+        c2 = cairo.Context(s2)
+        c2.scale(0.25, 0.25)
+        c2.set_source_surface(s1, 0, 0)
+        c2.get_source().set_filter(cairo.FILTER_BILINEAR)
+        c2.paint()
+
+        s3 = cairo.ImageSurface(cairo.FORMAT_ARGB32, max(1, width // 32), max(1, height // 32))
+        c3 = cairo.Context(s3)
+        c3.scale(0.5, 0.5)
+        c3.set_source_surface(s2, 0, 0)
+        c3.get_source().set_filter(cairo.FILTER_BILINEAR)
+        c3.paint()
+
+        s3_diffused = cairo.ImageSurface(cairo.FORMAT_ARGB32, max(1, width // 32), max(1, height // 32))
+        cbd = cairo.Context(s3_diffused)
+        for dx, dy, wgt in [(-1, 0, 0.2), (1, 0, 0.2), (0, -1, 0.2), (0, 1, 0.2), (0, 0, 0.2)]:
+            cbd.set_source_surface(s3, dx, dy)
+            cbd.paint_with_alpha(wgt)
 
         self.blurred_backdrop = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         cr_up = cairo.Context(self.blurred_backdrop)
-        cr_up.scale(8.0, 8.0)
-        cr_up.set_source_surface(down_surf, 0, 0)
+        cr_up.scale(32.0, 32.0)
+        cr_up.set_source_surface(s3_diffused, 0, 0)
         cr_up.get_source().set_filter(cairo.FILTER_BILINEAR)
         cr_up.paint()
 
@@ -811,7 +921,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         self.mouse_x = x
         self.mouse_y = y
 
-        # Window Dragging
         if self.finder_dragging:
             self.finder_x = x - self.drag_offset_x
             self.finder_y = y - self.drag_offset_y
@@ -824,11 +933,12 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             self.area.queue_draw()
             return
 
-        # Traffic lights hover detection on Finder
+        # Traffic lights hover detection on Floating Glass Pill Sidebar
         if self.finder_visible and not self.finder_minimized:
-            # Traffic lights are inside the Floating Glass Pill Sidebar
-            tl_x = self.finder_x + 8 + 18
-            tl_y = self.finder_y + 8 + 16
+            sb_x = self.finder_x + 10.0
+            sb_y = self.finder_y + 10.0
+            tl_x = sb_x + 16.0
+            tl_y = sb_y + 16.0
             if (tl_x - 6 <= x <= tl_x + 58) and (tl_y - 6 <= y <= tl_y + 18):
                 self.traffic_group_hover = True
                 if math.hypot(x - (tl_x + 6), y - (tl_y + 6)) <= 8:
@@ -875,16 +985,15 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
 
             # Right status items
             w = self.area.get_width()
-            if w - 190 <= x <= w - 165:
+            if w - 145 <= x <= w - 120:
                 self.spotlight_visible = not self.spotlight_visible
                 self.active_menu = None
-            elif w - 160 <= x <= w - 130:
+            elif w - 118 <= x <= w - 90:
                 self.control_center_visible = not self.control_center_visible
                 self.active_menu = None
             self.area.queue_draw()
             return
 
-        # Close open dropdowns if clicked outside
         if self.active_menu:
             if not (8 <= x <= 230 and 32 <= y <= 280):
                 self.active_menu = None
@@ -908,7 +1017,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         if self.terminal_visible and not self.terminal_minimized:
             if (self.terminal_x <= x <= self.terminal_x + self.terminal_w and
                 self.terminal_y <= y <= self.terminal_y + 36):
-                # Traffic lights on Terminal
                 tl_x = self.terminal_x + 18
                 tl_y = self.terminal_y + 16
                 if math.hypot(x - (tl_x + 6), y - (tl_y + 6)) <= 8:
@@ -933,20 +1041,25 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
 
         # 3. Finder Window Interactions
         if self.finder_visible and not self.finder_minimized:
-            # Check traffic lights inside Sidebar
-            tl_x = self.finder_x + 8 + 18
-            tl_y = self.finder_y + 8 + 16
-            if math.hypot(x - (tl_x + 6), y - (tl_y + 6)) <= 8: # Close
+            sb_x = self.finder_x + 10.0
+            sb_y = self.finder_y + 10.0
+            sb_w = 200.0
+            sb_h = self.finder_h - 20.0
+
+            # Traffic lights inside Floating Glass Pill Sidebar
+            tl_x = sb_x + 16.0
+            tl_y = sb_y + 16.0
+            if math.hypot(x - (tl_x + 6), y - (tl_y + 6)) <= 8:
                 self.finder_visible = False
                 self.traffic_pressed = 0
                 self.area.queue_draw()
                 return
-            elif math.hypot(x - (tl_x + 26), y - (tl_y + 6)) <= 8: # Minimize
+            elif math.hypot(x - (tl_x + 26), y - (tl_y + 6)) <= 8:
                 self.finder_minimized = True
                 self.traffic_pressed = 1
                 self.area.queue_draw()
                 return
-            elif math.hypot(x - (tl_x + 46), y - (tl_y + 6)) <= 8: # Zoom
+            elif math.hypot(x - (tl_x + 46), y - (tl_y + 6)) <= 8:
                 if self.finder_w > 1000:
                     self.finder_x, self.finder_y, self.finder_w, self.finder_h = 200, 100, 880, 560
                 else:
@@ -956,8 +1069,27 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 self.area.queue_draw()
                 return
 
-            # Check Toolbar navigation (< and >) and View Modes
-            tb_y = self.finder_y + 8
+            # Check Sidebar items click
+            if sb_x <= x <= sb_x + sb_w and sb_y + 48 <= y <= sb_y + sb_h:
+                cur_sy = sb_y + 54
+                sections = [
+                    ("FAVORITOS", [("airdrop", "AirDrop"), ("recents", "Recentes"), ("apps", "Aplicativos"),
+                                   ("desktop", "Mesa"), ("documents", "Documentos"), ("downloads", "Downloads")]),
+                    ("iCLOUD", [("icloud", "iCloud Drive")]),
+                    ("LOCAIS", [("machd", "Macintosh HD"), ("network", "Rede"), ("trash", "Lixeira")]),
+                ]
+                for sec_title, items in sections:
+                    cur_sy += 16
+                    for kid, name in items:
+                        if cur_sy - 12 <= y <= cur_sy + 14:
+                            self.finder_selected_sidebar = kid
+                            self.area.queue_draw()
+                            return
+                        cur_sy += 24
+                    cur_sy += 8
+
+            # Toolbar interactions
+            tb_y = self.finder_y + 10.0
             if tb_y <= y <= tb_y + 44:
                 # View switcher pill
                 v_x = self.finder_x + self.finder_w - 320
@@ -969,7 +1101,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                         self.area.queue_draw()
                         return
 
-                # Titlebar drag
                 self.finder_dragging = True
                 self.active_window = "finder"
                 self.drag_offset_x = x - self.finder_x
@@ -977,37 +1108,13 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 self.area.queue_draw()
                 return
 
-            # Check Sidebar items click
-            sb_x = self.finder_x + 8
-            sb_y = self.finder_y + 8 + 48
-            sb_w = 200
-            if sb_x <= x <= sb_x + sb_w and sb_y <= y <= self.finder_y + self.finder_h - 8:
-                # Clicked inside sidebar
-                cur_sy = sb_y + 22
-                items = [
-                    ("airdrop", "AirDrop"), ("recents", "Recentes"), ("apps", "Aplicativos"),
-                    ("desktop", "Mesa"), ("documents", "Documentos"), ("downloads", "Downloads"),
-                    ("sep1", ""),
-                    ("icloud", "iCloud Drive"), ("sep2", ""),
-                    ("machd", "Macintosh HD"), ("network", "Rede"), ("trash", "Lixeira")
-                ]
-                for kid, name in items:
-                    if kid.startswith("sep"):
-                        cur_sy += 16
-                        continue
-                    if cur_sy - 12 <= y <= cur_sy + 12:
-                        self.finder_selected_sidebar = kid
-                        self.area.queue_draw()
-                        return
-                    cur_sy += 24
-
-            # Check Folder grid click in content area
-            fx_start = self.finder_x + 224
-            fy_start = self.finder_y + 60
+            # Folder selection in grid (Bipartite selection click)
+            fx_start = self.finder_x + 230
+            fy_start = self.finder_y + 68
             if (fx_start <= x <= self.finder_x + self.finder_w and
                 fy_start <= y <= self.finder_y + self.finder_h - 32):
-                col = int((x - fx_start) / 110.0)
-                row = int((y - fy_start) / 96.0)
+                col = int((x - fx_start) / 155.0)
+                row = int((y - fy_start) / 110.0)
                 idx = row * 4 + col
                 folders = ["Applications", "Developer", "Documents", "Downloads",
                            "Library", "Movies", "Music", "Pictures", "System", "Users"]
@@ -1199,14 +1306,13 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             self.draw_spotlight(cr, width, height)
 
     def draw_menubar(self, cr, width):
-        """Renders 28px Top Menu Bar with Liquid Glass backdrop blur and vector icons."""
+        """Renders 28px Top Menu Bar with Liquid Glass backdrop blur and battery 100% on left."""
         # Backdrop Blur
         cr.save()
         cr.rectangle(0, 0, width, 28)
         cr.clip()
         cr.set_source_surface(self.blurred_backdrop, 0, 0)
         cr.paint()
-        # Translucent tint
         cr.set_source_rgba(0.08, 0.10, 0.14, 0.58)
         cr.paint()
         cr.restore()
@@ -1237,38 +1343,41 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.move_to(mx, 19)
             cr.show_text(name)
 
-        # Right Status Tray (All Procedural Vectors)
-        # Battery
-        draw_battery_icon(cr, width - 235, 8, 22, 12, 1.0)
-        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-        cr.set_font_size(11.5)
+        # Right Status Tray
+        # 1. Text "100%" (12px Semibold white) positioned to the LEFT of the battery
+        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+        cr.set_font_size(12)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.90)
-        cr.move_to(width - 206, 19)
+        cr.move_to(width - 232, 19)
         cr.show_text("100%")
 
-        # Wi-Fi
-        draw_wifi_icon(cr, width - 162, 14, 15)
+        # 2. Exact Battery Icon (22x11px, 1px contour 45%, positive nub, pure white fill)
+        draw_battery_icon_tahoe(cr, width - 192, 8.5, 1.0)
 
-        # Search Loupe
-        draw_search_loupe(cr, width - 138, 14, 15)
+        # 3. Wi-Fi
+        draw_wifi_icon(cr, width - 150, 14, 15)
 
-        # Control Center
-        draw_control_center_icon(cr, width - 114, 14, 15)
+        # 4. Search Loupe
+        draw_search_loupe(cr, width - 124, 14, 15)
 
-        # Dynamic Clock (ASCII text)
+        # 5. Control Center
+        draw_control_center_icon(cr, width - 98, 14, 15)
+
+        # 6. Dynamic Clock
         time_str = time.strftime("%a %d %b %H:%M")
-        cr.move_to(width - 92, 19)
+        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(12.5)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
+        cr.move_to(width - 74, 19)
         cr.show_text(time_str)
 
     def draw_dropdown_menu(self, cr):
         """Renders Apple Menu or App dropdown with Liquid Glass."""
         mx, my, mw, mh = 8.0, 32.0, 210.0, 240.0
-        # Shadow
         cr.set_source_rgba(0.0, 0.0, 0.0, 0.35)
         draw_squircle(cr, mx, my + 4, mw, mh, 10)
         cr.fill()
 
-        # Backdrop blur
         cr.save()
         draw_squircle(cr, mx, my, mw, mh, 10)
         cr.clip()
@@ -1278,7 +1387,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.paint()
         cr.restore()
 
-        # Border
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.20)
         cr.set_line_width(1.0)
         draw_squircle(cr, mx, my, mw, mh, 10)
@@ -1311,7 +1419,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 cur_y += 20
 
     def draw_finder_window(self, cr):
-        """Renders complete macOS Tahoe 26 Finder Window."""
+        """Renders macOS Tahoe 26 Finder Window with Floating Glass Pill Sidebar & Bipartite Selection."""
         x, y, w, h = self.finder_x, self.finder_y, self.finder_w, self.finder_h
 
         # 1. Analytical Gaussian erf dual-layer shadow
@@ -1328,32 +1436,37 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         draw_squircle(cr, x, y, w, h, 12)
         cr.stroke()
 
-        # 3. Floating Glass Pill Sidebar (Inset = 8px, R = 12px, Refracting Blurred Backdrop)
-        sb_x = x + 8
-        sb_y = y + 8
-        sb_w = 200
-        sb_h = h - 16
+        # 3. Floating Glass Pill Sidebar (Tahoe 26)
+        # Inset 10px on all sides: detached independent capsule with R=12px and NO vertical divider line!
+        sb_x = x + 10.0
+        sb_y = y + 10.0
+        sb_w = 200.0
+        sb_h = h - 20.0
 
+        # Independent shadow around floating sidebar capsule
+        cr.set_source_rgba(0.0, 0.0, 0.0, 0.22)
+        draw_squircle(cr, sb_x - 1, sb_y + 1, sb_w + 2, sb_h + 2, 12)
+        cr.fill()
+
+        # Backdrop blur + Liquid Glass tint
         cr.save()
         draw_squircle(cr, sb_x, sb_y, sb_w, sb_h, 12)
         cr.clip()
-        # Draw blurred backdrop underneath sidebar!
         cr.set_source_surface(self.blurred_backdrop, 0, 0)
         cr.paint()
-        # Translucent Liquid Glass Tint
-        cr.set_source_rgba(0.14, 0.16, 0.22, 0.62)
+        cr.set_source_rgba(0.14, 0.14, 0.17, 0.58)
         cr.paint()
         cr.restore()
 
-        # 1px Specular Rim on Sidebar
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.18)
-        cr.set_line_width(0.8)
+        # Specular inner border on Floating Sidebar
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.14)
+        cr.set_line_width(1.0)
         draw_squircle(cr, sb_x, sb_y, sb_w, sb_h, 12)
         cr.stroke()
 
-        # 4. Traffic Lights (At Top of Sidebar)
-        tl_x = sb_x + 18
-        tl_y = sb_y + 16
+        # 4. Traffic Lights (Inside Floating Glass Pill Sidebar)
+        tl_x = sb_x + 16.0
+        tl_y = sb_y + 16.0
         lights = [
             (TRAFFIC_RED, TRAFFIC_RED_BORDER, TRAFFIC_RED_GLYPH, "x"),
             (TRAFFIC_YELLOW, TRAFFIC_YELLOW_BORDER, TRAFFIC_YELLOW_GLYPH, "-"),
@@ -1378,7 +1491,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 cr.move_to(cx - ext.width / 2.0, cy + ext.height / 2.0 - 0.5)
                 cr.show_text(sym)
 
-        # 5. Sidebar Sections & Vector Items
+        # 5. Sidebar Sections & Items
         sections = [
             ("FAVORITOS", [
                 ("airdrop", "AirDrop"), ("recents", "Recentes"), ("apps", "Aplicativos"),
@@ -1388,7 +1501,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             ("LOCAIS", [("machd", "Macintosh HD"), ("network", "Rede"), ("trash", "Lixeira")]),
         ]
 
-        cur_sy = sb_y + 48
+        cur_sy = sb_y + 54
         for sec_title, items in sections:
             cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
             cr.set_font_size(10.5)
@@ -1402,37 +1515,45 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             for it_id, it_name in items:
                 is_sel = (self.finder_selected_sidebar == it_id)
                 if is_sel:
+                    # Active item internal pill: 8px margin, R=7.0, rgba(255, 255, 255, 0.14)
                     cr.set_source_rgba(1.0, 1.0, 1.0, 0.14)
-                    draw_squircle(cr, sb_x + 8, cur_sy - 12, sb_w - 16, 22, 6)
+                    draw_squircle(cr, sb_x + 8.0, cur_sy - 12.0, sb_w - 16.0, 28.0, 7.0)
                     cr.fill()
 
-                # Vector icon
-                draw_sidebar_icon(cr, it_id, sb_x + 22, cur_sy, 14,
+                draw_sidebar_icon(cr, it_id, sb_x + 22, cur_sy + 2, 14,
                                   color=(0.15, 0.60, 1.0, 1.0) if not is_sel else (1.0, 1.0, 1.0, 1.0))
 
                 cr.set_source_rgba(1.0, 1.0, 1.0, 0.95 if is_sel else 0.82)
-                cr.move_to(sb_x + 38, cur_sy + 4)
+                cr.move_to(sb_x + 38, cur_sy + 6)
                 cr.show_text(it_name)
                 cur_sy += 24
             cur_sy += 8
 
-        # 6. Complete 52px Toolbar (Top of Right Content Area)
-        tb_x = x + 216
-        tb_y = y + 8
-        tb_w = w - 224
+        # 6. Toolbar (y = win.y, x = win.x + 220) - Subtle rest state, zero hard borders
+        tb_x = x + 220
+        tb_y = y + 10.0
+        tb_w = w - 230
 
-        # Back & Forward Pill Buttons
+        # Navigation buttons < > (rgba(255, 255, 255, 0.06), subtle border 0.08, R=6px)
         draw_squircle(cr, tb_x, tb_y + 8, 28, 28, 6)
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+        cr.set_line_width(0.8)
+        draw_squircle(cr, tb_x, tb_y + 8, 28, 28, 6)
+        cr.stroke()
         draw_chevron(cr, tb_x + 14, tb_y + 22, 14, "left", (1.0, 1.0, 1.0, 0.85))
 
         draw_squircle(cr, tb_x + 34, tb_y + 8, 28, 28, 6)
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+        cr.set_line_width(0.8)
+        draw_squircle(cr, tb_x + 34, tb_y + 8, 28, 28, 6)
+        cr.stroke()
         draw_chevron(cr, tb_x + 48, tb_y + 22, 14, "right", (1.0, 1.0, 1.0, 0.45))
 
-        # Folder Title
+        # Title
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(15)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
@@ -1442,9 +1563,9 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         # 4-View Segmented Control
         v_x = tb_x + tb_w - 310
         draw_squircle(cr, v_x, tb_y + 8, 132, 28, 6)
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.12)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
         cr.set_line_width(0.8)
         draw_squircle(cr, v_x, tb_y + 8, 132, 28, 6)
         cr.stroke()
@@ -1459,12 +1580,12 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             draw_view_mode_icon(cr, m, mx + 16.5, tb_y + 22, 14,
                                 (1.0, 1.0, 1.0, 0.95 if self.finder_view_mode == m else 0.55))
 
-        # Search Pill with Vector Loupe
+        # Search Pill with Vector Loupe (subtle rest state)
         sp_x = tb_x + tb_w - 165
         draw_squircle(cr, sp_x, tb_y + 8, 155, 28, 6)
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.14)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
         cr.set_line_width(0.8)
         draw_squircle(cr, sp_x, tb_y + 8, 155, 28, 6)
         cr.stroke()
@@ -1481,7 +1602,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.rectangle(tb_x, tb_y + 44, tb_w, 1)
         cr.fill()
 
-        # 7. Main Grid of Real macOS Tahoe Folders (Dual-Sheet Radiant Blue Gradient)
+        # 7. Main Grid of Folders with Bipartite Selection (Seleção Bipartida)
         fx_start = x + 230
         fy_start = y + 68
         folders = [
@@ -1493,37 +1614,56 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             row = idx // 4
             fx = fx_start + col * 155
             fy = fy_start + row * 110
-
-            # Selection Highlight
             is_sel = (self.finder_selected_folder == fname)
+
             if is_sel:
-                cr.set_source_rgba(*ACCENT_BLUE, 0.25)
-                draw_squircle(cr, fx - 8, fy - 6, 110, 96, 8)
+                # 1. Behind ICON ONLY: 84x84px rounded square (R=8px) in rgba(255, 255, 255, 0.12) with NO blue border!
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.12)
+                draw_squircle(cr, fx + 5, fy - 6, 84, 84, 8)
                 cr.fill()
 
-            # Real procedural folder icon
-            draw_macos_folder(cr, fx + 10, fy, 74, 58)
+                # Draw exact S-curve Apple folder
+                draw_exact_macos_folder(cr, fx + 10, fy, 74, 58)
 
-            # Folder label
-            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-            cr.set_font_size(12)
-            cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
-            ext = cr.text_extents(fname)
-            cr.move_to(fx + 47 - ext.width / 2.0, fy + 78)
-            cr.show_text(fname)
+                # 2. Behind TEXT LABEL ONLY: tight pill (w = text_w + 12px, h = 18px, R = 4px) in solid macOS blue #0A60FF
+                cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+                cr.set_font_size(12)
+                ext = cr.text_extents(fname)
+                w_pill = ext.width + 12.0
+                h_pill = 18.0
+                pill_x = fx + 47 - w_pill / 2.0
+                pill_y = fy + 82
+                cr.set_source_rgb(10 / 255.0, 96 / 255.0, 255 / 255.0) # #0A60FF
+                draw_squircle(cr, pill_x, pill_y, w_pill, h_pill, 4)
+                cr.fill()
+
+                # Pure white bold text
+                cr.set_source_rgb(1.0, 1.0, 1.0)
+                cr.move_to(pill_x + 6, pill_y + 13)
+                cr.show_text(fname)
+
+            else:
+                # Unselected folder
+                draw_exact_macos_folder(cr, fx + 10, fy, 74, 58)
+
+                cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+                cr.set_font_size(12)
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.90)
+                ext = cr.text_extents(fname)
+                cr.move_to(fx + 47 - ext.width / 2.0, fy + 94)
+                cr.show_text(fname)
 
         # 8. Status Bar Footer (28px)
         stat_y = y + h - 28
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
-        cr.rectangle(x + 216, stat_y, w - 224, 1)
+        cr.rectangle(x + 220, stat_y, w - 230, 1)
         cr.fill()
 
-        # Mini folder icon + status text
-        draw_macos_folder(cr, x + 226, stat_y + 6, 18, 14)
+        draw_exact_macos_folder(cr, x + 230, stat_y + 6, 18, 14)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(11)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.50)
-        cr.move_to(x + 252, stat_y + 18)
+        cr.move_to(x + 256, stat_y + 18)
         cr.show_text("10 itens, 428,4 GB disponiveis")
 
     def draw_terminal_window(self, cr):
@@ -1532,7 +1672,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
 
         draw_gaussian_shadow(cr, x, y, w, h, 12, is_active=(self.active_window == "terminal"))
 
-        # Frosted glass body
         cr.set_source_rgba(0.06, 0.07, 0.10, 0.92)
         draw_squircle(cr, x, y, w, h, 12)
         cr.fill()
@@ -1542,7 +1681,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         draw_squircle(cr, x, y, w, h, 12)
         cr.stroke()
 
-        # Traffic lights
         tl_x = x + 18
         tl_y = y + 14
         for i, fill in enumerate([TRAFFIC_RED, TRAFFIC_YELLOW, TRAFFIC_GREEN]):
@@ -1552,7 +1690,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.arc(cx, cy, 5.5, 0, 2 * math.pi)
             cr.fill()
 
-        # Title
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(12)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.85)
@@ -1561,7 +1698,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.move_to(x + (w - ext.width) / 2.0, y + 22)
         cr.show_text(title)
 
-        # Output text
         cr.select_font_face("Monospace", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(12)
         text_y = y + 54
@@ -1578,7 +1714,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.show_text(line)
             text_y += 18
 
-        # Cursor
         last_line = self.term_output[-1]
         ext = cr.text_extents(last_line)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.80)
@@ -1586,7 +1721,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.fill()
 
     def draw_dock(self, cr, width, height):
-        """Renders Parabolic Magnified Liquid Glass Dock with vector icons."""
+        """Renders Parabolic Magnified Liquid Glass Dock with 3D vector icons."""
         dock_layout = self.calculate_dock_layout(width, height)
         if not dock_layout:
             return
@@ -1598,23 +1733,20 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         dock_x = min_x
         dock_y = height - 76.0
 
-        # Dock Shadow
         cr.set_source_rgba(0.0, 0.0, 0.0, 0.35)
         draw_squircle(cr, dock_x, dock_y + 4, dock_w, dock_h, 20)
         cr.fill()
 
-        # Backdrop Blur underneath dock
+        # Heavy Backdrop Blur underneath dock (sigma >= 42px)
         cr.save()
         draw_squircle(cr, dock_x, dock_y, dock_w, dock_h, 20)
         cr.clip()
         cr.set_source_surface(self.blurred_backdrop, 0, 0)
         cr.paint()
-        # Translucent tint
         cr.set_source_rgba(0.12, 0.14, 0.20, 0.60)
         cr.paint()
         cr.restore()
 
-        # Specular Rim
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.30)
         cr.set_line_width(1.0)
         draw_squircle(cr, dock_x, dock_y, dock_w, dock_h, 20)
@@ -1624,7 +1756,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         hovered_x = 0
         hovered_y = 0
 
-        # Render Dock Items
         for it in dock_layout:
             ix, iy, sz, it_data = it["x"], it["y"], it["size"], it["data"]
             it_id = it_data["id"]
@@ -1635,16 +1766,13 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 cr.fill()
                 continue
 
-            # Draw dedicated procedural vector icon
             draw_dock_icon(cr, it_id, ix, iy, sz)
 
-            # Active app indicator dot
             if it_data["running"]:
                 cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
                 cr.arc(ix + sz / 2.0, dock_y + dock_h - 6, 2.0, 0, 2 * math.pi)
                 cr.fill()
 
-            # Hover tooltip
             if ix <= self.mouse_x <= ix + sz and iy <= self.mouse_y <= iy + sz:
                 hovered_name = it_data["name"]
                 hovered_x = ix + sz / 2.0
@@ -1678,12 +1806,10 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         sp_x = (width - sp_w) / 2.0
         sp_y = height * 0.20
 
-        # Shadow
         cr.set_source_rgba(0.0, 0.0, 0.0, 0.45)
         draw_squircle(cr, sp_x - 8, sp_y + 12, sp_w + 16, sp_h + 16, 20)
         cr.fill()
 
-        # Backdrop Blur
         cr.save()
         draw_squircle(cr, sp_x, sp_y, sp_w, sp_h, 16)
         cr.clip()
@@ -1693,16 +1819,13 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.paint()
         cr.restore()
 
-        # Border
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.25)
         cr.set_line_width(1.2)
         draw_squircle(cr, sp_x, sp_y, sp_w, sp_h, 16)
         cr.stroke()
 
-        # Vector Loupe
         draw_search_loupe(cr, sp_x + 28, sp_y + 28, 20, (1.0, 1.0, 1.0, 0.65))
 
-        # Text input / placeholder
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(18)
         if not self.spotlight_query:
@@ -1719,7 +1842,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.rectangle(sp_x + 56 + ext.width + 2, sp_y + 18, 2, 22)
             cr.fill()
 
-            # Results
             cr.set_source_rgba(1.0, 1.0, 1.0, 0.10)
             cr.rectangle(sp_x, sp_y + 56, sp_w, 1)
             cr.fill()
@@ -1779,7 +1901,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         draw_squircle(cr, cc_x, cc_y, cc_w, cc_h, 16)
         cr.stroke()
 
-        # Connectivity Card
         card_x = cc_x + 12
         card_y = cc_y + 12
         card_w = 142
@@ -1788,7 +1909,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         draw_squircle(cr, card_x, card_y, card_w, card_h, 12)
         cr.fill()
 
-        # Wi-Fi toggle
         cr.set_source_rgba(*ACCENT_BLUE, 0.95)
         cr.arc(card_x + 24, card_y + 26, 14, 0, 2 * math.pi)
         cr.fill()
@@ -1804,11 +1924,9 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.move_to(card_x + 46, card_y + 36)
         cr.show_text("CachyOS-5G")
 
-        # Bluetooth toggle
         cr.set_source_rgba(*ACCENT_BLUE, 0.95)
         cr.arc(card_x + 24, card_y + 68, 14, 0, 2 * math.pi)
         cr.fill()
-        # Bluetooth vector rune
         cr.set_source_rgb(1, 1, 1)
         cr.set_line_width(1.4)
         cr.move_to(card_x + 24, card_y + 60)
@@ -1830,7 +1948,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.move_to(card_x + 46, card_y + 78)
         cr.show_text("Ativado")
 
-        # Focus Card
         fcard_x = card_x + card_w + 12
         fcard_w = 142
         fcard_h = 60
@@ -1848,7 +1965,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.move_to(fcard_x + 16, card_y + 44)
         cr.show_text("Nao Perturbe")
 
-        # Sliders (Brightness & Volume)
         slider_y = card_y + card_h + 16
         for label, val in [("Tela", self.brightness), ("Som", self.volume)]:
             cr.set_source_rgba(1, 1, 1, 0.8)
