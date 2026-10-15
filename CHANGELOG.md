@@ -7,6 +7,37 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.11.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-toolkit` (Fase 11 - Framework AquaUI: Pílulas de Vidro Flutuante, Modal Sheets, Barra de Abas Nativa e Motor de Tipografia Cocoa)**:
+  - **Componentes e Pílulas de Vidro Flutuante (`src/widgets.rs`)**:
+    - **Geometria Squircle $G^2$ Superelipse**: Equação analítica contínua de curvatura com expoente $n = 4.0$, garantindo ausência de descontinuidades na curvatura entre bordas retas e cantos arredondados.
+    - **Material Óptico Liquid Glass**: Parâmetros de refração ($\eta = 1.52$), dispersão cromática ($\Delta \eta = 0.015$), blur Dual-Kawase de fundo ($\sigma = 20.0\text{px}$) e borda especular reflexiva.
+    - **Botões e Micro-interações com Física de Molas**: Depressão de 4% ao pressionar ($1.0 \to 0.96 \to 1.0$) dirigida por `SpringAnimation` com preset `dock_bounce`.
+    - **Controle Segmentado Deslizante**: Pílula de seleção de vidro que desliza suavemente sob os rótulos de texto com transições elásticas.
+    - **Interruptor Toggle de Vidro**: Alternador estilo macOS/iOS com movimento de polegar dirigido por molas.
+  - **Modal Sheets Ancoradas (`src/sheets.rs`)**:
+    - **Ancoragem na Barra de Título da Janela Pai**: Desdobramento vertical caindo diretamente da base da barra de ferramentas com mola física (`SpringParams::window_open`).
+    - **Camada de Escurecimento Translúcido (Scrim)**: Esmaecimento suave do conteúdo da janela pai até $35\%$ de opacidade.
+    - **Gesto Interativo de Puxar para Fechar (Drag-to-Dismiss)**: Deslocamento vertical com resistência elástica Cocoa rubber-banding; liberação além do limite de $120\text{px}$ confirma o descarte elástico da folha modal.
+  - **Barra de Abas Nativa com Reordenação Flocking (`src/tabs.rs`)**:
+    - **Física de Reordenação por Arrasto Flocking**: Ao arrastar uma aba, as abas vizinhas deslizam automaticamente para o lado usando física de molas (`SpringParams::dock_bounce`), abrindo espaço para inserção antes da soltura.
+    - **Glifo Canônico de Estado Não-Salvo (Dirty State)**: Abas com edições não salvas exibem um ponto de bala central (`•`) no botão de fechar, que se transforma dinamicamente em um `x` ao passar o cursor (comportamento nativo AppKit).
+    - **Distribuição Adaptativa de Largura**: Ajuste dinâmico entre $W_{\text{min}} = 100\text{px}$ e $W_{\text{max}} = 240\text{px}$, acomodando o botão fixo de nova aba (`+`).
+    - **Pílula de Fundo Deslizante Ativa**: Indicador de vidro que acompanha a aba ativa com interpolação analítica contínua.
+  - **Motor de Tipografia Cocoa CoreText (`src/text.rs`)**:
+    - **Posicionamento Subpixel em Quartos de Pixel**: Quantização das origens horizontais de glifos em múltiplos de $0.25\text{px}$ ($x = \text{round}(4x)/4$), preservando o desenho caligráfico de fontes como *SF Pro* sem distorções de font hinting.
+    - **Escurecimento Adaptativo de Hastes (Stem Darkening)**: Modulação adaptativa de espessura de fonte baseada na luminância do fundo ($L \in [0.0, 1.0]$), aplicando até $+15\%$ de peso em fundos brancos para compensar a erosão de subpixel bleed.
+    - **Cursor Caret com Pulso Suave em Cosseno**: Modulação ótica contínua de opacidade ($I(t) = \frac{1 + \cos(2\pi f t)}{2}$) a $0.8\text{ Hz}$.
+    - **Quebra de Linhas Multilinha e Hit-Testing**: Layout com word wrapping e cálculo instantâneo de índice de caractere a partir de coordenadas $(x, y)$.
+  - **Motor de Layout Declarativo AquaUI (`src/layout.rs`)**:
+    - Estruturas de pilha flexível `VStackLayout` e `HStackLayout` com espaçamento configurável, alinhamentos ortogonais (`Leading`, `Center`, `Trailing`, `Top`, `Bottom`) e margens de borda `EdgeInsets`.
+  - **Tema Global AquaUI (`src/lib.rs`)**:
+    - Definição de `AquaTheme` suportando modos `Light` e `Dark`, cor de destaque Cupertino Blue (`rgba(0, 122, 255, 1.0)`) e níveis de translucidez de janela.
+
+---
+
 ## [0.10.0-alpha.1] - 2026-10-15
 
 ### Added

@@ -1,0 +1,19 @@
+[package]
+name = "qz-toolkit"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "macOS Tahoe 26 Declarative AquaUI Framework (Floating Glass Pills, Modal Sheets, Native Tabs, Cocoa Text Engine)"
+
+[dependencies]
+qz-animation = { workspace = true }
+qz-renderer = { workspace = true }
+glam = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
