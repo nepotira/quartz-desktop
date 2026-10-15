@@ -7,6 +7,55 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.9.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-daemons` (Fase 9 - Daemons de Sistema: CoreAudio Auto-pause, Wi-Fi/BT Option-Diagnostics, Power/Clamshell, OSD com Passos Finos de 1/64, Seleção de Acentos, Paleta de Emoji e Ditado por Voz)**:
+  - **Daemon CoreAudio e Políticas de Reprodução (`src/audio.rs`)**:
+    - **Pausa Automática ao Desconectar Fones / Bluetooth**: Interceptação em tempo real de desligamento ou desconexão de fones 3.5mm ou fones Bluetooth A2DP, emitindo sinal `AutoPauseAction::PauseMedia` para proteger a privacidade e evitar ejeção de som nos alto-falantes integrados.
+    - **Pausa Automática ao Suspender / Bloquear**: Emissão imediata de pausa ao entrar em modo de suspensão ou bloqueio de tela.
+    - **Curva Perceptual Cúbica e Escala em Decibéis**: Mapeamento não-linear de volume perceptual ($V_{\text{amp}} = x^3$) e conversão analítica para decibéis ($\text{dB} = 20 \log_{10}(V)$ com piso de $-60\text{ dB}$).
+    - **Efeitos Sonoros Canônicos do macOS Tahoe 26**: Gerador e despachante de sons de sistema (`VolumeTick`, `AlertSosumi`, `AlertBasso`, `AlertPing`, `AlertFunk`, `AlertHero`, `AlertTink`, `ScreenshotCapture`, `TrashEmpty`, `DictationStart`, `DictationStop`).
+    - **Gerenciamento de Dispositivos e Perfis**: Rastreamento de alto-falantes internos, microfones, HDMI/DisplayPort e perfis de codec Bluetooth (AAC, aptX, LDAC, LC3, SBC).
+  - **Monitor de Radios e Diagnósticos Avançados Option-Click (`src/network.rs`)**:
+    - **Inspeção de Camada Física e RF de Wi-Fi (`WifiDiagnostics`)**: Captura em tempo real de BSSID, RSSI ($\text{dBm}$), Piso de Ruído ($\text{dBm}$), Relação Sinal-Ruído ($\text{SNR} = \text{RSSI} - \text{Noise}$), Padrão PHY (802.11a/b/g/n/ac/ax/be incluindo Wi-Fi 6, 6E e 7), Canais e Larguras de Banda (20/40/80/160/320 MHz), Taxa de Transmissão Tx (Mbps), Índice MCS, Fluxos Espaciais (NSS) e Tipo de Segurança (WPA3-Personal SAE, WPA2-Enterprise, etc.).
+    - **Inspeção de Periféricos Bluetooth (`BluetoothDeviceDiagnostics`)**: Rastreamento de periféricos (AirPods, Magic Mouse, Magic Keyboard, Magic Trackpad), RSSI, Porcentagem de Qualidade de Link, Latência em milissegundos, Codec de Áudio ativo e Leitura Multi-Bateria (AirPods Fone Esquerdo, Fone Direito e Estojo de Carga).
+    - **Formatação Canônica de Diagnóstico**: Formatação estruturada em pares chave-valor para exibição imediata no menu Option+Click da Menu Bar.
+  - **Gerenciamento de Energia, Bateria e Modo Clamshell (`src/power.rs`)**:
+    - **Máquina de Estados de Modo Clamshell Determinística**:
+      - Ao fechar a tampa do laptop: entra em `ClamshellMode::ClamshellActive` se e somente se houver monitor externo conectado (`external_displays_count >= 1`) E alimentação externa conectada (`ac_connected == true`), desativando o painel interno (eDP-1) e transferindo o desktop para o monitor externo.
+      - Se qualquer um dos dois requisitos faltar ao fechar a tampa (ou se o cabo de energia for desconectado com a tampa fechada), o sistema entra imediatamente em modo de suspensão (`TriggerSleep`).
+    - **Telemetria e Saúde da Bateria (`BatteryTelemetry`)**:
+      - Cálculo de potência instantânea em Watts ($P = V \times I$).
+      - Estimativa dinâmica de tempo restante em minutos para carga e descarga.
+      - Avaliação de saúde da bateria: relação entre capacidade máxima atual e capacidade de fábrica de projeto ($\text{Health} = \frac{C_{\text{max}}}{C_{\text{design}}} \times 100\%$) com recomendação de serviço para saúde $< 80\%$, e contagem de ciclos de recarga.
+    - **Modo de Baixo Consumo (Low Power Mode)**: Sinalização para o compositor limitar o ProMotion de 120Hz para 60Hz e reduzir passas de blur translúcido na GPU.
+  - **Bezel On-Screen Display (OSD) com Passos Finos (`src/osd.rs`)**:
+    - Pílula flutuante e bezel HUD estilo macOS Tahoe 26 para Volume, Brilho de Tela e Iluminação do Teclado.
+    - **Granularidade em Passos de 1/64 (64 Níveis Discretos)**:
+      - Passo padrão de 1/16 (16 níveis de barra, $\Delta = 4$ sub-passos).
+      - **Passo ultra-fino de 1/64 acionado via `Option + Shift + Volume/Brilho`** ($\Delta = 1$ sub-passo), provendo precisão cirúrgica de áudio e brilho mínimo.
+    - **Animação de Popover com Física de Molas**: Escala e entrada dirigidas por `qz_animation::SpringAnimation` (preset `dock_bounce`).
+    - **Temporizador de Descarte e Esmaecimento**: Exibição por 1.8 segundos com decaimento suave de opacidade (*alpha*).
+    - **Ícones Dinâmicos Adaptativos**: Transição automática de glifos baseada no nível atual (Mudo, Baixo, Médio, Alto).
+  - **Subsistema de Auxiliares de Entrada (`src/input_helpers/`)**:
+    - **Seletor de Diacríticos e Acentos (`accents.rs`)**:
+      - Press-and-hold ativado ao segurar tecla por mais de 300ms (`hold_threshold`), cancelando a repetição contínua e projetando popover numerado sobre o cursor de texto (ex: segurar `e` apresenta `1: é, 2: è, 3: ê, 4: ë, 5: ē, 6: ė, 7: ę`).
+      - Confirmação via tecla numérica (1–9), Setas + Enter, ou clique.
+    - **Paleta de Emoji e Símbolos (`emoji.rs`)**:
+      - Atalho canônico `Ctrl + Cmd + Space`.
+      - Catálogo completo estruturado nas 9 categorias do Tahoe 26.
+      - Modificadores Unicode Fitzpatrick de tom de pele (Padrão, Claro, Médio-Claro, Médio, Médio-Escuro, Escuro).
+      - Busca textual sub-milissegundo por palavras-chave e sinônimos, fila MRU de usados recentemente (até 32 itens) e favoritos fixados.
+    - **Daemon de Ditado por Voz (`dictation.rs`)**:
+      - Detecção de duplo-toque na tecla `Fn` (Globo) em intervalo $\le 400\text{ms}$.
+      - Medidor de RMS de áudio do microfone com suavização exponencial para alimentar o indicador pulsante na Privacy Capsule da Menu Bar.
+      - Buffer de transcrição com hipóteses parciais em tempo real e confirmação final com pontuação.
+  - **Coordenador Unificado de Daemons (`src/lib.rs`)**:
+    - Estrutura `SystemDaemonsCoordinator` centralizando todos os daemons e integrando eventos de ciclo de vida com o compositor.
+
+---
+
 ## [0.8.0-alpha.1] - 2026-10-15
 
 ### Added
