@@ -7,6 +7,29 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.16.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `xdg-desktop-portal-quartz` (Fase 16 - Portal Nativo XDG para QuartzLinux: FileChooser em Sheet Modal com Drag-to-Retarget, QuickLook embutido, Screenshot, Settings e ScreenCast)**:
+  - **Seletor de Arquivos em Sheet Modal Ancorada (`src/file_chooser.rs`)**:
+    - Apresentação em Sheet modal caindo da barra de título da janela pai (`parent_window_id`), com escurecimento translúcido por scrim e física de molas.
+    - **Drag-to-Retarget**: Arrasto de arquivos ou diretórios do Finder sobre a barra de navegação de caminho altera instantaneamente a pasta ativa do seletor.
+    - **Visualização Rápida Quick Look Embutida**: Pressionamento da barra de espaço (`Spacebar`) sobre qualquer item selecionado expande um cartão flutuante de pré-visualização interativa a 120fps sem bloquear ou fechar o diálogo.
+    - Filtros por tipos MIME e padrões glob (`*.pdf`, `image/*`).
+  - **Portal de Captura de Tela e Pipeta de Cores (`src/screenshot.rs`)**:
+    - Captura em tela cheia, seleção de área retangular com cursor em cruz, e captura de janela isolada com preservação de canal alfa e sombra suave de contato dual-layer erf.
+    - Medidor Digital de Cores (`PickColor`): lupa ampliada de $8\times$ com retorno em formato RGB normalizado e hexadecimal (`#007AFF`).
+  - **Sincronização de Ajustes e Aparência (`src/settings.rs`)**:
+    - Implementação de `org.freedesktop.appearance`: preferência de esquema de cores (`color-scheme` 1: prefer-dark, 2: prefer-light), cor de destaque (`accent-color` sincronizada com as 8 cores canônicas de Cupertino) e contraste.
+    - Emissão de sinais de alteração em tempo real para aplicativos Flatpak/XDG em execução.
+  - **Transmissão de Tela ScreenCast via PipeWire (`src/screencast.rs`)**:
+    - Negociação de fluxos de vídeo por monitor DRM ou por superfície de janela a 60Hz ou 120Hz ProMotion VRR.
+    - Modos de cursor configuráveis: embutido no quadro (`Embedded`), oculto (`Hidden`) ou transmitido como metadados (`Metadata`).
+  - **Serviço Central e Configuração FreeDesktop (`src/service.rs`)**:
+    - Gerador da configuração canônica `quartz-portals.conf` definindo as rotas prioritárias de portal para o ambiente QuartzLinux.
+
+---
+
 ## [0.15.0-alpha.1] - 2026-10-15
 
 ### Added
