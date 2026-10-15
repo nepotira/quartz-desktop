@@ -7,6 +7,35 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.7.0-alpha.1] - 2026-10-15
+
+### Added
+- **Crate `qz-quicklook` (Fase 7 - Daemon de Pré-Visualização com Barra de Espaço, Expansão 120fps, Marcação, Recorte de Mídia e Visual Look Up)**:
+  - **Daemon de Barra de Espaço & Retargeting em Tempo Real (`src/controller.rs`)**:
+    - Disparo instantâneo por tecla `Espaço` com fechamento automático em `Espaço` ou `Esc`.
+    - Troca fluida em pleno voo de arquivos sem reabrir a janela ao navegar pelas teclas direcionais no Finder.
+  - **Motor de Expansão e Colapso Geométrico a 120fps (`src/animation/`)**:
+    - Interpolação analítica $C^2$ contínua (`rect_expansion.rs`) entre o retângulo da miniatura de origem $[x, y, w, h]$ e o retângulo da janela de pré-visualização centralizada $[x, y, w, h]$ via física de molas (`qz_animation::SpringAnimation`).
+    - Tratamento de interrupção com reversão elástica sem descontinuidades ou saltos bruscos.
+  - **Geradores de Pré-Visualização Multi-Formato (`src/preview/`)**:
+    - **Imagens**: Suporte a Display P3, sRGB, transparência alfa e formatos raster/vetoriais (HEIC, PNG, JPEG, WebP, SVG, TIFF).
+    - **Documentos PDF**: Contador de páginas, índice estruturado (TOC) e metadados de título.
+    - **Código-Fonte e Texto**: Destaque e contagem de linhas para Rust, Python, C++, TypeScript, TOML, JSON e Markdown.
+    - **Mídia (Áudio e Vídeo)**: Resolução, taxa de quadros (60fps/120fps), codecs de vídeo (HEVC, ProRes, AV1) e áudio (AAC, FLAC, ALAC).
+    - **Arquivos Compactados e Pastas**: Inspeção de diretórios ZIP/DMG com lista de entradas e cálculo de tamanho descompactado.
+  - **Subsistema de Marcação e Anotações Interativas (`src/markup/`)**:
+    - Ferramentas de Caneta com variação de pressão, Marca-Texto com blend multiplicativo, Flechas vetoriais, Formas geométricas (Retângulo, Elipse), Notas de texto e Assinatura por trackpad.
+    - Suavização de traços por splines cúbicas / Catmull-Rom e histórico local de Desfazer/Refazer.
+    - Rotação horária de 90° (`Cmd+R`).
+  - **Subsistema de Recorte Não-Destrutivo de Mídia (`src/trim/`)**:
+    - Marcadores táteis de Ponto de Entrada (*In-Point*) e Ponto de Saída (*Out-Point*) com scrubber sincronizado e cálculo de limites para exportação.
+  - **Visual Look Up & Destaque de Assunto (*Subject Lift*) (`src/visual_lookup/`)**:
+    - Segmentação automática do assunto em primeiro plano com contorno poligonal e animação cintilante dourada (*shimmer*).
+    - Ação "Copiar Assunto" gerando arquivo PNG transparente isolado para a área de transferência.
+    - Classificação de entidades por inteligência visual (Animais, Plantas, Monumentos, Obras de Arte, Comida, Texto) com ficha informativa popover.
+
+---
+
 ## [0.6.0-alpha.1] - 2026-10-15
 
 ### Added

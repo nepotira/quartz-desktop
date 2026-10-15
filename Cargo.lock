@@ -451,6 +451,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "qz-quicklook"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "glam",
+ "qz-animation",
+ "qz-renderer",
+ "qz-shell",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "qz-renderer"
 version = "0.1.0"
 dependencies = [
