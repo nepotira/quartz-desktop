@@ -7,6 +7,23 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.23.0-alpha.1] - 2026-10-15
+
+### Added & Changed (Fase 4: Daemons de Sistema, Depth Lock Screen, AquaUI CoreText Toolkit, Apps Nativos Tahoe 26 & Camada de Compatibilidade)
+- **Daemons de Sistema, Teclado e Áudio (`crates/qz-daemons` & `crates/qz-compositor` — Pilar 13)**:
+  - **Press-and-Hold Accents de 400ms (`accents.rs`)**: Adição de `HOLD_THRESHOLD_TAHOE_SECS = 0.40` ($400\text{ms}$) e construtor `AccentsManager::new_tahoe_400ms()` suprimindo key-repeat para abrir o popover numerado de diacríticos (`1..9`).
+  - Integração completa com o `SmartKeymapper` (`Super -> Ctrl` preservando sinais POSIX `SIGINT` no `qz-terminal` e atalhos Emacs/Cocoa `Ctrl+A/E/K/D`), paleta de Emojis (`Ctrl+Cmd+Space`), OSD Bezel de $1/4$ de passo (`Option+Shift+Vol/Bright` com 64 níveis discretos) e auto-pause CoreAudio na desconexão de fones.
+- **Depth Lock Screen, Aerial Decelerator & 3D Cube User Switch (`crates/qz-session-lock` — Pilar 14)**:
+  - **Oscilador Harmônico Amortecido de Erro de Senha (`depth_lock.rs`)**: Equação exata $\Delta x(t) = 14 \cdot e^{-8t} \cdot \sin(10\pi t)$ (`SHAKE_AMPLITUDE_PX = 14.0`, `SHAKE_DECAY_GAMMA = 8.0`, `SHAKE_OMEGA_RAD = 10\pi`) e efeito de profundidade volumétrica do relógio atrás do assunto segmentado.
+  - **Desacelerador Aerial a 120fps (`aerial_decelerator.rs`)**: Suporte analítico tanto ao decaimento exponencial de velocidade $v(t) = v_0 e^{-3.5t}$ (`DECAY_LAMBDA = 3.5`, `calculate_exponential_decel_speed`) quanto à curva de Hermite $C^2$ contínua até o congelamento exato no papel de parede estático.
+- **AquaUI Declarative Toolkit & Tipografia CoreText (`crates/qz-toolkit` — Pilar 15)**:
+  - **Renderização CoreText (`text.rs`)**: Flag `FT_LOAD_NO_HINTING_ENABLED = true`, posicionamento sub-pixel em $1/4$ de pixel (`quantize_quarter_pixel`) e transferência gamma de dilatação de haste $\gamma = 1.8 \to 2.2$ (`apply_coretext_gamma_correction`).
+- **Suíte de Aplicativos Nativos & Compatibilidade GTK/Qt (`crates/apps/*`, `compat/*` — Pilares 16 e 17)**:
+  - **Ajustes do Sistema (`qz-settings/src/window.rs`)**: Geometria da Floating Glass Pill Sidebar alinhada à Lei Anti-Fraude 5 (`SIDEBAR_PILL_INSET_PX = 10.0`, `h = win.h - 20.0`, `SIDEBAR_PILL_CORNER_RADIUS_PX = 11.0`).
+  - **Monitor de Atividade Interativo (`qz-activity-monitor`, `qz_shell_ui.py`)**: Janela nativa com 5 abas (`CPU`, `Memória`, `Energia`, `Disco`, `Rede`) e Gráfico de Pressão de Memória em onda verde `#30D158`.
+
+---
+
 ## [0.22.0-alpha.1] - 2026-10-15
 
 ### Added & Changed (Fase 3: Quick Look 120fps, XDG Desktop Portal Sheet, Spotlight de 4 Modos e Screenshot Isolada com Sombra `erf`)

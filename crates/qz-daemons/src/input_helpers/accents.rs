@@ -78,12 +78,24 @@ impl Default for AccentsManager {
 }
 
 impl AccentsManager {
-    /// Creates a new `AccentsManager` with standard 300ms threshold.
+    /// Canonical macOS Tahoe 26 press-and-hold threshold in seconds ($0.400\text{s} = 400\text{ms}$, Pillar 13).
+    pub const HOLD_THRESHOLD_TAHOE_SECS: f64 = 0.40;
+
+    /// Creates a new `AccentsManager` with standard threshold.
     #[must_use]
     pub fn new() -> Self {
         Self {
             state: AccentsState::Idle,
             hold_threshold_seconds: 0.30,
+        }
+    }
+
+    /// Creates a new `AccentsManager` configured with the strict macOS Tahoe 26 $400\text{ms}$ threshold.
+    #[must_use]
+    pub fn new_tahoe_400ms() -> Self {
+        Self {
+            state: AccentsState::Idle,
+            hold_threshold_seconds: Self::HOLD_THRESHOLD_TAHOE_SECS,
         }
     }
 

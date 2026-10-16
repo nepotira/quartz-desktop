@@ -801,6 +801,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         self.spotlight_mode = 1  # 1: Universal, 2: Actions, 3: Clipboard, 4: App Library
         self.quicklook_visible = False
         self.screenshot_hud_visible = False
+        self.activity_visible = False
         self.control_center_visible = False
         self.brightness = 0.85
         self.volume = 0.70
@@ -1197,6 +1198,9 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                     elif it_id == "launchpad":
                         self.spotlight_visible = True
                         self.spotlight_mode = 4
+                    elif it_id == "activity":
+                        self.activity_visible = not self.activity_visible
+                        it_data["running"] = self.activity_visible
                     elif it_id == "settings":
                         self.control_center_visible = True
                     self.area.queue_draw()
@@ -1223,6 +1227,7 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             self.spotlight_visible = False
             self.quicklook_visible = False
             self.screenshot_hud_visible = False
+            self.activity_visible = False
             self.control_center_visible = False
             self.active_menu = None
             self.area.queue_draw()
@@ -1243,6 +1248,8 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 elif "find" in q:
                     self.finder_visible = True
                     self.finder_minimized = False
+                elif "ativ" in q or "act" in q:
+                    self.activity_visible = True
                 self.spotlight_visible = False
                 self.spotlight_query = ""
             elif keyval < 256 and chr(keyval).isprintable():
@@ -1360,6 +1367,9 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
 
         if self.finder_visible and not self.finder_minimized:
             self.draw_finder_window(cr)
+
+        if self.activity_visible:
+            self.draw_activity_monitor_window(cr, width, height)
 
         # 3. Parabolic Magnified Liquid Glass Dock
         self.draw_dock(cr, width, height)
@@ -2262,6 +2272,106 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             draw_squircle(cr, card_x, slider_y, sl_w * val, sl_h, 10)
             cr.fill()
             slider_y += 50
+
+    def draw_activity_monitor_window(self, cr, width, height):
+        """Renders macOS Tahoe 26 Activity Monitor with 5 tabs and Memory Pressure Graph (Pillar 16.2)."""
+        am_w, am_h = 640.0, 420.0
+        am_x, am_y = (width - am_w) / 2.0 + 40.0, (height - am_h) / 2.0 - 20.0
+
+        draw_gaussian_window_shadow(cr, am_x, am_y, am_w, am_h, 14)
+
+        cr.save()
+        draw_squircle(cr, am_x, am_y, am_w, am_h, 14)
+        cr.clip()
+        cr.set_source_surface(self.blurred_backdrop, 0, 0)
+        cr.paint()
+        cr.set_source_rgba(0.10, 0.12, 0.18, 0.92)
+        cr.paint()
+        cr.restore()
+
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.25)
+        cr.set_line_width(1.0)
+        draw_squircle(cr, am_x, am_y, am_w, am_h, 14)
+        cr.stroke()
+
+        # Traffic lights
+        for idx, col in enumerate([TRAFFIC_RED, TRAFFIC_YELLOW, TRAFFIC_GREEN]):
+            cr.set_source_rgb(*col)
+            cr.arc(am_x + 22 + idx * 20, am_y + 22, 6, 0, 2 * math.pi)
+            cr.fill()
+
+        # Title & 5-Tab Segmented Control (CPU, Memória, Energia, Disco, Rede)
+        tabs = ["CPU", "Memória", "Energia", "Disco", "Rede"]
+        for tidx, tlbl in enumerate(tabs):
+            tx = am_x + 170 + tidx * 74
+            ty = am_y + 10
+            if tidx == 1:
+                cr.set_source_rgba(*ACCENT_BLUE, 0.85)
+                draw_squircle(cr, tx, ty, 68, 24, 6)
+                cr.fill()
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.98)
+            else:
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+                draw_squircle(cr, tx, ty, 68, 24, 6)
+                cr.fill()
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.65)
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(11)
+            cr.move_to(tx + 12, ty + 16)
+            cr.show_text(tlbl)
+
+        # Process rows
+        procs = [
+            ("qz-compositor (Wayland + Vulkan 1.3)", "342 MB", "14.2%", "Apple/CachyOS"),
+            ("qz-finder (Tahoe 26 Liquid Glass)", "128 MB", "4.8%", "Apple/CachyOS"),
+            ("qz-spotlight (Indexador < 8ms)", "84 MB", "1.1%", "Apple/CachyOS"),
+            ("qz-quicklook (Daemon 120fps)", "62 MB", "0.4%", "Apple/CachyOS"),
+        ]
+        ry = am_y + 68
+        for idx, (pname, pmem, pcpu, parch) in enumerate(procs):
+            if idx % 2 == 1:
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.04)
+                cr.rectangle(am_x + 12, ry - 16, am_w - 24, 28)
+                cr.fill()
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+            cr.set_font_size(12)
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.92)
+            cr.move_to(am_x + 24, ry)
+            cr.show_text(pname)
+            cr.move_to(am_x + 360, ry)
+            cr.show_text(pmem)
+            cr.move_to(am_x + 450, ry)
+            cr.show_text(pcpu)
+            cr.move_to(am_x + 520, ry)
+            cr.show_text(parch)
+            ry += 30
+
+        # Memory Pressure Graph at bottom (#30D158 Green Wave)
+        gx, gy, gw, gh = am_x + 20, am_y + am_h - 115, am_w - 40, 92
+        cr.set_source_rgba(0.05, 0.07, 0.11, 0.85)
+        draw_squircle(cr, gx, gy, gw, gh, 10)
+        cr.fill()
+
+        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+        cr.set_font_size(11)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.80)
+        cr.move_to(gx + 14, gy + 20)
+        cr.show_text("PRESSÃO DE MEMÓRIA — Normal (Verde #30D158) | Física: 32 GB | Comprimida: 512 MB")
+
+        # Filled green Memory Pressure waveform
+        cr.save()
+        cr.move_to(gx + 14, gy + gh - 12)
+        for step in range(0, int(gw - 28), 8):
+            wave_y = gy + gh - 28 - 14.0 * math.sin(step * 0.045) - 6.0 * math.cos(step * 0.11)
+            cr.line_to(gx + 14 + step, wave_y)
+        cr.line_to(gx + gw - 14, gy + gh - 12)
+        cr.close_path()
+        cr.set_source_rgba(0.188, 0.820, 0.345, 0.35)
+        cr.fill_preserve()
+        cr.set_source_rgba(0.188, 0.820, 0.345, 0.95)
+        cr.set_line_width(2.0)
+        cr.stroke()
+        cr.restore()
 
 def main():
     is_nested = "--nested" in sys.argv
