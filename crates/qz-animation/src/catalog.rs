@@ -564,7 +564,7 @@ impl DockDragReleaseOutcome {
     /// Calcula o estado instantâneo das 5 esferas procedurais de fumaça branca no instante `elapsed`.
     pub fn evaluate_poof_spheres(elapsed: f64) -> [PoofSmokeSphere; 5] {
         let u = (elapsed / Self::POOF_DURATION).clamp(0.0, 1.0);
-        let angles = [0.0, 1.256637, 2.513274, 3.769911, 5.026548]; // 5 direções pentagonais
+        let angles: [f64; 5] = [0.0, 1.256637, 2.513274, 3.769911, 5.026548]; // 5 direções pentagonais
         let mut spheres = [PoofSmokeSphere {
             offset: (0.0, 0.0),
             radius: 0.0,
