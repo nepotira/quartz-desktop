@@ -75,10 +75,20 @@ impl SpotlightController {
     pub const MAX_EXPANDED_HEIGHT: f32 = 520.0;
     /// Standard window width in pixels.
     pub const WINDOW_WIDTH: f32 = 680.0;
+    /// Canonical Spotlight Materialization spring stiffness ($k = 480.0$, Pillar 4 #15).
+    pub const SPOTLIGHT_SPRING_K: f64 = 480.0;
+    /// Canonical Spotlight Materialization spring damping ($c = 40.0$, Pillar 4 #15).
+    pub const SPOTLIGHT_SPRING_C: f64 = 40.0;
+    /// Maximum Universal Search latency budget in milliseconds ($< 8.0\text{ms}$, Pillar 11).
+    pub const MAX_SEARCH_LATENCY_MS: f64 = 8.0;
 
-    /// Creates a new Spotlight Controller initialized with Tahoe 26 spring physics.
+    /// Creates a new Spotlight Controller initialized with Tahoe 26 spring physics ($k=480, c=40$).
     pub fn new() -> Self {
-        let spring_params = SpringParams::window_open();
+        let spring_params = SpringParams {
+            mass: 1.0,
+            stiffness: Self::SPOTLIGHT_SPRING_K,
+            damping: Self::SPOTLIGHT_SPRING_C,
+        };
         let height_spring = SpringAnimation::new(
             spring_params,
             Self::COMPACT_HEIGHT as f64,
@@ -101,6 +111,16 @@ impl SpotlightController {
             menu_runner: MenuRunner::new(),
             clipboard: ClipboardHistory::new(200),
             app_library: AppLibrary::new(),
+        }
+    }
+
+    /// Activates or deactivates Jiggle Mode ($\pm 1.5^\circ$ at $8\text{Hz}$) when `Option` is held in Mode 4 (`AppLibrary`).
+    pub fn set_option_held_in_app_library(&mut self, option_held: bool) {
+        if self.mode == SpotlightMode::AppLibrary {
+            let is_active = self.app_library.jiggle_state().is_active;
+            if option_held != is_active {
+                self.app_library.toggle_jiggle_mode();
+            }
         }
     }
 

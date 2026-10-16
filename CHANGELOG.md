@@ -7,6 +7,23 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.22.0-alpha.1] - 2026-10-15
+
+### Added & Changed (Fase 3: Quick Look 120fps, XDG Desktop Portal Sheet, Spotlight de 4 Modos e Screenshot Isolada com Sombra `erf`)
+- **Quick Look Spacebar Daemon (`crates/qz-quicklook` — Pilar 9)**:
+  - **Morphing Geométrico a 120fps (`rect_expansion.rs`)**: Calibração exata da mola analítica ($k = 420.0, c = 36.0$, `QUICKLOOK_SPRING_K`, `QUICKLOOK_SPRING_C`) interpolando suavemente $(x, y, w, h)$ do ícone selecionado no Finder/Spotlight até a janela de pré-visualização centralizada.
+  - **QuickTime Trim & Visual Look Up (`trim/mod.rs`, `visual_lookup`)**: Constantes canônicas da barra amarela de corte QuickTime (`#FFD60A`, `QUICKTIME_TRIM_YELLOW_HEX`), ferramentas de Markup vetorial e recorte de assunto em primeiro plano (*Subject Lift*).
+- **XDG Desktop Portal Nativo (`compat/xdg-desktop-portal-quartz` — Pilar 10)**:
+  - **Sheet Modal Roll-Down (`file_chooser.rs`)**: Ancoragem na barra de título da janela pai com física de mola ($k = 400.0, c = 35.0$), desdobramento 3D de pitch (`-8.0° -> 0.0°` via `evaluate_sheet_transform`), *Drag-to-Retarget* de pastas na barra de caminho e Quick Look integrado.
+- **Spotlight de 4 Modos do macOS Tahoe 26 (`crates/qz-spotlight` — Pilar 11)**:
+  - **Física de Materialização & SLA $< 8\text{ms}$ (`controller.rs`)**: Mola calibrada ($k = 480.0, c = 40.0$, `SPOTLIGHT_SPRING_K`, `SPOTLIGHT_SPRING_C`), latência máxima de busca $< 8.0\text{ms}$ (`MAX_SEARCH_LATENCY_MS`) e ativação automática do *Jiggle Mode* ($\pm 1.5^\circ$ a $8\text{Hz}$) ao segurar `Option` no Modo 4 (`set_option_held_in_app_library`).
+- **Motor de Captura & Gravação com Sombra Analítica Dual-Layer `erf` (`crates/qz-screenshot` — Pilar 12)**:
+  - **Captura de Janela Isolada (`isolated_window.rs`)**: Margem expandida de `+90px` (`margin_x = 90.0, margin_top = 90.0, margin_bottom = 120.0`), recorte por Superelipse contínua $G^2$ ($p = 2.35$, Lei Anti-Fraude 4) e avaliador analítico `evaluate_dual_erf_shadow_alpha` ($\sigma_1 = 4.0\text{px}, \Delta y_1 = 2.0\text{px}$ + $\sigma_2 = 42.0\text{px}, \Delta y_2 = 24.0\text{px}$) em fundo transparente PNG (suprimido ao segurar `Option`).
+- **Interface Gráfica Interativa (`crates/qz-shell/src/qz_shell_ui.py`)**:
+  - Adição das 4 abas interativas do Spotlight (`Cmd+1` Busca Universal, `Cmd+2` Ações e Menu Runner, `Cmd+3` Clipboard com amostras de cor `#HEX` ao vivo, `Cmd+4` App Library), modal Quick Look ao pressionar `Spacebar` no Finder (com barra de corte QuickTime `#FFD60A` e Subject Lift) e HUD de Captura de Tela em Liquid Glass (`F5`).
+
+---
+
 ## [0.21.0-alpha.1] - 2026-10-15
 
 ### Added & Changed (Fases 1 e 2: Clean Slate Core — `qz-icons`, `qz-animation`, `qz-renderer`, `qz-compositor`, `qz-finder` e `qz-shell`)
