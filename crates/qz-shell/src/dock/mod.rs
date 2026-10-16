@@ -62,18 +62,25 @@ pub struct DockStack {
 }
 
 impl DockStack {
-    /// Angle increment per fan item in degrees (4.5 degrees).
-    pub const FAN_ANGLE_STEP_DEG: f32 = 4.5;
+    /// Angle increment per fan item in degrees ($4.2^\circ$ per Pillar 4 #8).
+    pub const FAN_ANGLE_STEP_DEG: f32 = 4.2;
+    /// Quadratic horizontal offset coefficient per fan item ($3.5\text{px}$ per Pillar 4 #8).
+    pub const FAN_OFFSET_X_COEFF: f32 = 3.5;
 
-    /// Creates a new Dock stack.
+    /// Creates a new Dock stack with the canonical fan spring ($m = 1.0, k = 380.0, c = 28.0$).
     pub fn new(folder_path: &str, name: &str, view_mode: StackViewMode, items: Vec<StackItem>) -> Self {
+        let fan_spring = SpringParams {
+            mass: 1.0,
+            stiffness: 380.0,
+            damping: 28.0,
+        };
         Self {
             folder_path: folder_path.to_string(),
             name: name.to_string(),
             view_mode,
             items,
             is_open: false,
-            expansion_spring: SpringAnimation::new(SpringParams::window_open(), 0.0, 0.0, 0.0),
+            expansion_spring: SpringAnimation::new(fan_spring, 0.0, 0.0, 0.0),
         }
     }
 
@@ -91,22 +98,27 @@ impl DockStack {
         }
     }
 
-    /// Computes fan item angle in degrees for index `k`: $\theta_k = k \cdot 4.5^\circ$.
+    /// Computes fan item angle in degrees for index `k`: $\theta_k = k \cdot 4.2^\circ$.
     pub fn fan_item_angle_deg(k: usize) -> f32 {
         k as f32 * Self::FAN_ANGLE_STEP_DEG
     }
 
-    /// Toggles stack open state (optionally in slow motion if Shift was held).
+    /// Computes fan item horizontal arc displacement in pixels for index `k`: $\Delta x_k = k^2 \cdot 3.5\text{px}$.
+    pub fn fan_item_offset_x_px(k: usize) -> f32 {
+        (k * k) as f32 * Self::FAN_OFFSET_X_COEFF
+    }
+
+    /// Toggles stack open state (optionally in slow motion $0.2\times$ if Shift was held).
     pub fn toggle_open(&mut self, slow_motion: bool) -> bool {
         self.is_open = !self.is_open;
         let target = if self.is_open { 1.0 } else { 0.0 };
 
-        let mut params = SpringParams::window_open();
-        if slow_motion {
-            // Scale stiffness down by (0.15)^2 to produce 0.15x speed
-            params.stiffness *= 0.0225;
-            params.damping *= 0.15;
+        let params = SpringParams {
+            mass: 1.0,
+            stiffness: 380.0,
+            damping: 28.0,
         }
+        .with_slow_motion(slow_motion);
 
         self.expansion_spring.set_params(params);
         self.expansion_spring.retarget(target);
@@ -347,8 +359,9 @@ mod tests {
         let stack_few = DockStack::new("/docs", "Docs", StackViewMode::Automatic, items_few);
         assert_eq!(stack_few.effective_view_mode(), StackViewMode::Fan);
 
-        // Angle for 3rd item: 3 * 4.5 = 13.5 degrees
-        assert_eq!(DockStack::fan_item_angle_deg(3), 13.5);
+        // Angle for 3rd item: 3 * 4.2 = 12.6 degrees; offset X: 9 * 3.5 = 31.5px
+        assert!((DockStack::fan_item_angle_deg(3) - 12.6).abs() < 1e-4);
+        assert!((DockStack::fan_item_offset_x_px(3) - 31.5).abs() < 1e-4);
 
         let items_many: Vec<StackItem> = (0..15)
             .map(|i| StackItem {

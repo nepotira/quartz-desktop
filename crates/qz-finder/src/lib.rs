@@ -58,9 +58,9 @@ pub use drag_physics::{
 };
 pub use undo::{FsOperation, FsTransactionJournal, UndoError};
 pub use views::{
-    Column, ColumnItem, ColumnPreviewPane, ColumnViewManager, FinderViewMode, GalleryItem,
-    GalleryViewManager, IconArrangement, IconViewLayout, IconViewSettings, LabelPosition,
-    ListColumnConfig, ListColumnId, ListNode, ListViewManager, ListViewSettings, PositionedIcon,
-    SortDirection,
+    rename_stem_selection_range, BipartiteSelectionGeometry, Column, ColumnItem, ColumnPreviewPane,
+    ColumnViewManager, FinderViewMode, GalleryItem, GalleryViewManager, IconArrangement,
+    IconViewLayout, IconViewSettings, LabelPosition, ListColumnConfig, ListColumnId, ListNode,
+    ListViewManager, ListViewSettings, PositionedIcon, SortDirection,
 };
-pub use window::{FinderWindow, SidebarItem, SidebarSection};
+pub use window::{FinderWindow, FloatingSidebarGeometry, InfoPanelKind, SidebarItem, SidebarSection};

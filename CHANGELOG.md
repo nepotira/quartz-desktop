@@ -7,6 +7,27 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.21.0-alpha.1] - 2026-10-15
+
+### Added & Changed (Fases 1 e 2: Clean Slate Core — `qz-icons`, `qz-animation`, `qz-renderer`, `qz-compositor`, `qz-finder` e `qz-shell`)
+- **Novo Crate `crates/qz-icons` (100% Shaders Procedurais SDF/Bézier — Lei Anti-Fraude 1)**:
+  - Implementação completa do crate `qz-icons` em Rust Edition 2024 (`#![deny(missing_docs)]`) e shader canônico `shaders/icons_tahoe.glsl`.
+  - Funções exatas `draw_apple_logo_sdf` (interseção booleana de dois lóbulos elípticos, entalhes superior/inferior, subtração circular da mordida lateral e folha inclinada a $-0.65\text{ rad}$) e `draw_macos_folder_tahoe` (aba traseira com transição suave `smoothstep(0.36, 0.48)` em `#208AE6`, corpo frontal com gradiente de 3 stops `#76DAFF` $\to$ `#339AF0` $\to$ `#0F75E8`, friso especular superior, vincos horizontais na base e 6 insígnias em baixo-relevo com sombra interna branca de `+1px`).
+  - Renderizadores procedurais em GPU/CPU para os 7 ícones 3D do Dock (`Finder`, `Launchpad`, `Safari`, `Terminal`, `Settings`, `ActivityMonitor` com traço de ECG verde `#30D158`, e `Trash`) e todos os ícones da Status Bar e Sidebar.
+- **Catálogo Completo das 18 Animações Físicas (`crates/qz-animation`)**:
+  - Novo módulo `catalog.rs` implementando e testando matematicamente todas as 18 animações obrigatórias do Pilar 4: (1) Window Open/Close ($k=380, c=34$), (2) Minimize/Restore Genie ($k=300, c=30$, 3 estágios), (3) Traffic Lights Hover Crossfade ($120\text{ms}$), (4) Sheet Modal Roll-down ($k=400, c=35$), (5) Shake-to-Locate ($>3\text{ inv.}/400\text{ms} \to 4.0\times$, retenção $1.2\text{s}$), (6) Dock Gaussian Wave & Launch Bounce ($h_n = 28\cdot 0.65^n$), (7) Dock Folder Fan/Grid ($k=450, c=32$, $\theta_i = i\cdot 4.2^\circ$), (8) Mission Control & Spaces ($k=320, c=32$, Poisson-Disk), (9) Stage Manager 3D ($k=340, c=33, \theta_y=14^\circ$), (10) Quick Look Spacebar Morph ($k=420, c=36$), (11) Rubber-Band Overscroll ($d' = \frac{d\cdot c_{\text{lim}}}{d + c_{\text{lim}}}$), (12) Menu Selection Double-Blink ($2\times 60\text{ms}$), (13) Control Center Pill Expansion ($k=420, c=36$), (14) Notification Stacking ($k=360, c=30$), (15) Spotlight Materialization ($k=480, c=40$), (16) Password Error Shake ($\Delta x(t) = 14 e^{-8t}\sin(10\pi t)$), (17) Aerial Wallpaper Deceleration ($v(t)=v_0 e^{-3.5t}$), e (18) 3D Cube Fast User Switch ($90^\circ$ com perspectiva FOV $60^\circ$).
+  - Multiplicador global `Shift` Slow-Motion ($0.2\times$) via `SpringConfig::with_slow_motion`.
+- **Pipeline Multipass Liquid Glass & Sombras Analíticas (`crates/qz-renderer` — Leis Anti-Fraude 2, 3 e 4)**:
+  - **Pirâmide Dual-Kawase de 5 Níveis (`kawase.rs`, `kawase_down.frag`, `kawase_up.frag`)**: 5 passes de downsample (`1/2, 1/4, 1/8, 1/16, 1/32`) + 5 passes de upsample garantindo $\sigma_{\text{eq}} \ge 48\text{px}$.
+  - **Superelipse Contínua $G^2$ e Liquid Glass Tahoe 26 (`liquid_glass_tahoe.frag`)**: Implementação exata de `sdSquircleG2` ($p = 2.35$), `sdSquircleNormal` e `compose_liquid_glass_tahoe` com refração ótica de lente, aberração cromática, saturação Luma $1.95\times$, Color Dodge/Burn, Interleaved Gradient Noise e borda especular de `1.0px`.
+  - **Sombra Analítica Dual-Layer via `erf` (`shadow_sdf.frag`, `shadow.rs`)**: Funções exatas `erf_approx`, `shadow_box_integral_x`, `gaussian_box_shadow` e `eval_window_dual_shadow` ($\sigma_1 = 4\text{px}, \Delta y_1 = 2\text{px}$ + $\sigma_2 = 42\text{px}, \Delta y_2 = 24\text{px}$) em quad expandido `+90px`.
+  - **Deformação Não-Linear do Efeito Gênio (`genie.vert`, `genie.rs`)**: Implementação exata de `eval_genie_vertex` em malha subdividida $64 \times 64$.
+- **Anatomia das Janelas, Finder Tahoe 26 & Shell (`qz-compositor`, `qz-finder`, `qz-shell` — Leis Anti-Fraude 5 e 6)**:
+  - Novo módulo `crates/qz-compositor/src/chrome.rs`: Semáforos (`#FF5F56`, `#FFBD2E`, `#27C93F`) com glifos vetoriais sincronizados, Hover `0.5s` no botão verde abrindo Tiling Popover (Left/Right/Fullscreen/Stage Manager), Proxy Icon e hierarquia da barra de título até `Macintosh HD`, e redimensionamento em 8 direções (`Option` simétrico do centro, `Shift` trava proporção).
+  - **Floating Glass Pill Sidebar & Seleção Bipartida (`qz-finder`, `qz_shell_ui.py`)**: Sidebar descolada `10px` das bordas (`R = 11px`), zero bordas brancas duras de `1px` na toolbar, seleção bipartida (`rgba(255,255,255,0.12)` `R = 10px` no ícone + pílula `#0058D0` `R = 4.5px` no texto), renomeação inline com `Enter` selecionando apenas o radical antes da extensão, e suporte completo às 4 visualizações (`Cmd+1` Ícones, `Cmd+2` Lista, `Cmd+3` Colunas Miller, `Cmd+4` Galeria).
+
+---
+
 ## [0.20.2-alpha.1] - 2026-10-15
 
 ### Added & Changed (Governança de Engenharia de Software, SemVer 2.0.0 & Compilação Exclusiva em Nuvem via GitHub CLI)

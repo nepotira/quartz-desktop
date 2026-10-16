@@ -299,68 +299,109 @@ def draw_sidebar_icon(cr, kind, cx, cy, size, color=(0.0, 0.48, 1.0, 1.0)):
 # OFFICIAL macOS TAHOE 26 FOLDER & 3D DOCK ARTWORK (NO MOCKUPS / NO MS PAINT)
 # ==============================================================================
 
-def draw_exact_macos_folder(cr, x, y, w, h):
-    """Draws real macOS Tahoe folder (continuous S-curve rear tab, pocket AO, celestial gradient, grooves)."""
+def draw_exact_macos_folder(cr, x, y, w, h, glyph_id=0):
+    """Draws real macOS Tahoe 26 folder (S-curve rear tab, 3-stop celestial gradient, embossed glyph)."""
     cr.save()
     # 1. Soft projected shadow below the folder
     cr.set_source_rgba(0.0, 0.0, 0.0, 0.28)
     draw_squircle(cr, x + 2, y + 6, w - 4, h - 2, 8)
     cr.fill()
 
-    # 2. Rear Sheet with smooth S-curve transition on tab (x=0.34..0.48)
+    # 2. Rear Sheet with smooth S-curve transition on tab (x=0.32..0.46)
     tab_y = y + h * 0.14
     body_top_y = y + h * 0.22
     cr.save()
     cr.new_sub_path()
     cr.move_to(x + 5, body_top_y)
-    cr.line_to(x + w * 0.34, body_top_y)
-    # S-curve up to tab
-    cr.curve_to(x + w * 0.38, body_top_y, x + w * 0.40, tab_y, x + w * 0.44, tab_y)
+    cr.line_to(x + w * 0.32, body_top_y)
+    cr.curve_to(x + w * 0.37, body_top_y, x + w * 0.41, tab_y, x + w * 0.46, tab_y)
     cr.line_to(x + 5, tab_y)
     cr.close_path()
-    # Apple Rear Tab Blue #228BE6
+    # Apple Rear Tab Gradient #2CA2F8 -> #1472D4
     pat_back = cairo.LinearGradient(x, tab_y, x, y + h * 0.86)
-    pat_back.add_color_stop_rgb(0.0, 0.24, 0.65, 0.96)
-    pat_back.add_color_stop_rgb(1.0, 0.10, 0.44, 0.80)
+    pat_back.add_color_stop_rgb(0.0, 0.173, 0.635, 0.973)
+    pat_back.add_color_stop_rgb(1.0, 0.078, 0.447, 0.831)
     cr.set_source(pat_back)
     cr.fill()
 
-    # Rear main body
     draw_squircle(cr, x + 2, body_top_y, w - 4, h * 0.68, 6)
     cr.fill()
 
-    # Specular rim on top of rear tab
-    cr.set_source_rgba(1.0, 1.0, 1.0, 0.35)
+    cr.set_source_rgba(1.0, 1.0, 1.0, 0.30)
     cr.rectangle(x + 6, tab_y + 0.5, w * 0.36, 1.0)
     cr.fill()
     cr.restore()
 
-    # 3. Pocket AO Shadow above y = 0.28 (seamless, no hard black band!)
-    pocket_y = y + h * 0.28
-    cr.set_source_rgba(0.0, 0.15, 0.40, 0.22)
+    # 3. Internal junction AO shadow at y = 0.27
+    pocket_y = y + h * 0.27
+    cr.set_source_rgba(0.0, 0.15, 0.40, 0.24)
     cr.rectangle(x + 4, pocket_y - 3, w - 8, 3)
     cr.fill()
 
-    # 4. Front Cover Sheet with Apple Celestial Gradient (#72D6FF -> #127DFA)
-    front_y = y + h * 0.28
-    front_h = h * 0.60
+    # 4. Front Cover Sheet (y = 0.27..0.88) with 3-stop gradient: #78DAFF -> #36A8FF -> #0B7CFF
+    front_y = y + h * 0.27
+    front_h = h * 0.61
     pat_front = cairo.LinearGradient(x, front_y, x, front_y + front_h)
-    pat_front.add_color_stop_rgb(0.0, 0.45, 0.84, 1.00) # #72D6FF Radiant Cyan Top
-    pat_front.add_color_stop_rgb(1.0, 0.07, 0.49, 0.98) # #127DFA Deep Apple Blue Bottom
+    pat_front.add_color_stop_rgb(0.0, 0.471, 0.855, 1.000) # #78DAFF
+    pat_front.add_color_stop_rgb(0.5, 0.212, 0.659, 1.000) # #36A8FF
+    pat_front.add_color_stop_rgb(1.0, 0.043, 0.486, 1.000) # #0B7CFF
     cr.set_source(pat_front)
     draw_squircle(cr, x, front_y, w, front_h, 7)
     cr.fill()
 
-    # 5. Luminous white specular highlight on top lip (y = 0.286)
-    cr.set_source_rgba(0.90, 0.98, 1.0, 0.70)
-    cr.rectangle(x + 4, front_y + 0.5, w - 8, 1.2)
+    # 5. White/cyan 1.0px specular crest at y = 0.275
+    cr.set_source_rgba(0.92, 0.98, 1.0, 0.72)
+    cr.rectangle(x + 4, front_y + 0.5, w - 8, 1.0)
     cr.fill()
 
-    # 6. Two subtle horizontal base grooves near bottom (y = 0.82 and y = 0.845)
-    cr.set_source_rgba(0.0, 0.15, 0.45, 0.12)
-    cr.rectangle(x + 6, front_y + front_h - 8, w - 12, 1)
-    cr.rectangle(x + 6, front_y + front_h - 5, w - 12, 1)
+    # 6. Two subtle horizontal base grooves near bottom (y = 0.82 and y = 0.85)
+    cr.set_source_rgba(0.0, 0.15, 0.45, 0.11)
+    cr.rectangle(x + 6, y + h * 0.82, w - 12, 1)
+    cr.set_source_rgba(0.0, 0.15, 0.45, 0.09)
+    cr.rectangle(x + 6, y + h * 0.85, w - 12, 1)
     cr.fill()
+
+    # 7. Central Embossed Insignia (Pillar 5.2)
+    if glyph_id > 0 and w >= 40:
+        gcx = x + w * 0.50
+        gcy = y + h * 0.575
+        gs = min(w, h) * 0.22
+        cr.save()
+        cr.set_source_rgba(0.03, 0.32, 0.72, 0.55)
+        cr.set_line_width(max(1.5, gs * 0.16))
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_JOIN_ROUND)
+        if glyph_id == 1:  # Applications ('A')
+            cr.move_to(gcx, gcy - gs * 0.45)
+            cr.line_to(gcx - gs * 0.38, gcy + gs * 0.42)
+            cr.move_to(gcx, gcy - gs * 0.45)
+            cr.line_to(gcx + gs * 0.38, gcy + gs * 0.42)
+            cr.move_to(gcx - gs * 0.28, gcy + gs * 0.18)
+            cr.line_to(gcx + gs * 0.28, gcy + gs * 0.18)
+            cr.stroke()
+        elif glyph_id == 2:  # Documents
+            draw_squircle(cr, gcx - gs * 0.32, gcy - gs * 0.42, gs * 0.64, gs * 0.84, 2.0)
+            cr.stroke()
+        elif glyph_id == 3:  # Downloads (Arrow in circle)
+            cr.arc(gcx, gcy, gs * 0.48, 0, 2 * math.pi)
+            cr.stroke()
+            cr.move_to(gcx, gcy - gs * 0.25)
+            cr.line_to(gcx, gcy + gs * 0.22)
+            cr.move_to(gcx - gs * 0.18, gcy + gs * 0.05)
+            cr.line_to(gcx, gcy + gs * 0.24)
+            cr.line_to(gcx + gs * 0.18, gcy + gs * 0.05)
+            cr.stroke()
+        elif glyph_id == 5:  # Developer ('< / >')
+            cr.move_to(gcx - gs * 0.22, gcy - gs * 0.25)
+            cr.line_to(gcx - gs * 0.45, gcy)
+            cr.line_to(gcx - gs * 0.22, gcy + gs * 0.25)
+            cr.move_to(gcx + gs * 0.22, gcy - gs * 0.25)
+            cr.line_to(gcx + gs * 0.45, gcy)
+            cr.line_to(gcx + gs * 0.22, gcy + gs * 0.25)
+            cr.move_to(gcx + gs * 0.08, gcy - gs * 0.32)
+            cr.line_to(gcx - gs * 0.08, gcy + gs * 0.32)
+            cr.stroke()
+        cr.restore()
 
     cr.restore()
 
@@ -692,23 +733,24 @@ def draw_dock_icon(cr, it_id, x, y, sz):
 # ==============================================================================
 
 def draw_gaussian_shadow(cr, x, y, w, h, r, is_active=True):
-    """Renders dual-layer analytical Gaussian erf shadow (Contact AO + Deep Penumbra)."""
-    steps = 22
-    max_d = 72.0
-    sigma2 = 38.0
-    alpha_base = 0.45 if is_active else 0.20
-    dy2 = 22.0 if is_active else 14.0
+    """Renders dual-layer analytical Gaussian erf shadow (Contact AO sigma1=4px/dy1=2px + Penumbra sigma2=42px/dy2=24px on +90px quad)."""
+    steps = 24
+    max_d = 90.0
+    sigma2 = 42.0
+    umbra_a = 0.52 if is_active else 0.20
+    ao_a = 0.30 if is_active else 0.18
+    dy2 = 24.0
 
     for i in range(steps, 0, -1):
         d = (i / float(steps)) * max_d
-        alpha = alpha_base * math.exp(-(d * d) / (2.0 * sigma2 * sigma2)) * (1.0 / steps) * 2.8
+        alpha = umbra_a * math.exp(-(d * d) / (2.0 * sigma2 * sigma2)) * (1.0 / steps) * 2.8
         cr.set_source_rgba(0.0, 0.0, 0.0, alpha)
         draw_squircle(cr, x - d, y - d + dy2, w + 2 * d, h + 2 * d, r + d * 0.5)
         cr.fill()
 
     for i in range(8, 0, -1):
         d = (i / 8.0) * 8.0
-        alpha = 0.30 * math.exp(-(d * d) / 32.0) * (1.0 / 8.0) * 2.5
+        alpha = ao_a * math.exp(-(d * d) / 32.0) * (1.0 / 8.0) * 2.5
         cr.set_source_rgba(0.0, 0.0, 0.0, alpha)
         draw_squircle(cr, x - d, y - d + 2.0, w + 2 * d, h + 2 * d, r + d * 0.3)
         cr.fill()
@@ -1419,10 +1461,10 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 cur_y += 20
 
     def draw_finder_window(self, cr):
-        """Renders macOS Tahoe 26 Finder Window with Floating Glass Pill Sidebar & Bipartite Selection."""
+        """Renders macOS Tahoe 26 Finder Window with Floating Glass Pill Sidebar (10px inset, R=11px) & Bipartite Selection."""
         x, y, w, h = self.finder_x, self.finder_y, self.finder_w, self.finder_h
 
-        # 1. Analytical Gaussian erf dual-layer shadow
+        # 1. Analytical Gaussian erf dual-layer shadow (+90px expanded quad, sigma1=4/dy1=2, sigma2=42/dy2=24)
         draw_gaussian_shadow(cr, x, y, w, h, 12, is_active=(self.active_window == "finder"))
 
         # 2. Main Window Dark Body (#1E1E22)
@@ -1436,32 +1478,32 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         draw_squircle(cr, x, y, w, h, 12)
         cr.stroke()
 
-        # 3. Floating Glass Pill Sidebar (Tahoe 26)
-        # Inset 10px on all sides: detached independent capsule with R=12px and NO vertical divider line!
+        # 3. Floating Glass Pill Sidebar (Tahoe 26 — Law #5)
+        # Inset 10px from left, top, and bottom: x = win.x + 10, y = win.y + 10, w = 205, h = win.h - 20, R = 11px
         sb_x = x + 10.0
         sb_y = y + 10.0
-        sb_w = 200.0
+        sb_w = 205.0
         sb_h = h - 20.0
 
         # Independent shadow around floating sidebar capsule
         cr.set_source_rgba(0.0, 0.0, 0.0, 0.22)
-        draw_squircle(cr, sb_x - 1, sb_y + 1, sb_w + 2, sb_h + 2, 12)
+        draw_squircle(cr, sb_x - 1, sb_y + 2, sb_w + 2, sb_h + 2, 11)
         cr.fill()
 
         # Backdrop blur + Liquid Glass tint
         cr.save()
-        draw_squircle(cr, sb_x, sb_y, sb_w, sb_h, 12)
+        draw_squircle(cr, sb_x, sb_y, sb_w, sb_h, 11)
         cr.clip()
         cr.set_source_surface(self.blurred_backdrop, 0, 0)
         cr.paint()
-        cr.set_source_rgba(0.14, 0.14, 0.17, 0.58)
+        cr.set_source_rgba(30 / 255.0, 30 / 255.0, 34 / 255.0, 0.52)
         cr.paint()
         cr.restore()
 
-        # Specular inner border on Floating Sidebar
+        # Specular inner border on Floating Sidebar (R = 11px)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.14)
         cr.set_line_width(1.0)
-        draw_squircle(cr, sb_x, sb_y, sb_w, sb_h, 12)
+        draw_squircle(cr, sb_x, sb_y, sb_w, sb_h, 11)
         cr.stroke()
 
         # 4. Traffic Lights (Inside Floating Glass Pill Sidebar)
@@ -1515,7 +1557,6 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             for it_id, it_name in items:
                 is_sel = (self.finder_selected_sidebar == it_id)
                 if is_sel:
-                    # Active item internal pill: 8px margin, R=7.0, rgba(255, 255, 255, 0.14)
                     cr.set_source_rgba(1.0, 1.0, 1.0, 0.14)
                     draw_squircle(cr, sb_x + 8.0, cur_sy - 12.0, sb_w - 16.0, 28.0, 7.0)
                     cr.fill()
@@ -1529,28 +1570,20 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 cur_sy += 24
             cur_sy += 8
 
-        # 6. Toolbar (y = win.y, x = win.x + 220) - Subtle rest state, zero hard borders
-        tb_x = x + 220
+        # 6. Toolbar (Law #5: ZERO 1px white borders on <, >, View Switcher, or Search buttons!)
+        tb_x = x + 225
         tb_y = y + 10.0
-        tb_w = w - 230
+        tb_w = w - 235
 
-        # Navigation buttons < > (rgba(255, 255, 255, 0.06), subtle border 0.08, R=6px)
+        # Navigation buttons < > (subtle translucent pill fill, NO hard border stroke!)
         draw_squircle(cr, tb_x, tb_y + 8, 28, 28, 6)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
-        cr.set_line_width(0.8)
-        draw_squircle(cr, tb_x, tb_y + 8, 28, 28, 6)
-        cr.stroke()
         draw_chevron(cr, tb_x + 14, tb_y + 22, 14, "left", (1.0, 1.0, 1.0, 0.85))
 
         draw_squircle(cr, tb_x + 34, tb_y + 8, 28, 28, 6)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
-        cr.set_line_width(0.8)
-        draw_squircle(cr, tb_x + 34, tb_y + 8, 28, 28, 6)
-        cr.stroke()
         draw_chevron(cr, tb_x + 48, tb_y + 22, 14, "right", (1.0, 1.0, 1.0, 0.45))
 
         # Title
@@ -1560,15 +1593,11 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.move_to(tb_x + 76, tb_y + 27)
         cr.show_text("Macintosh HD")
 
-        # 4-View Segmented Control
+        # 4-View Segmented Control (NO hard border stroke!)
         v_x = tb_x + tb_w - 310
         draw_squircle(cr, v_x, tb_y + 8, 132, 28, 6)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
-        cr.set_line_width(0.8)
-        draw_squircle(cr, v_x, tb_y + 8, 132, 28, 6)
-        cr.stroke()
 
         modes = ["icons", "list", "columns", "gallery"]
         for idx, m in enumerate(modes):
@@ -1580,15 +1609,11 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             draw_view_mode_icon(cr, m, mx + 16.5, tb_y + 22, 14,
                                 (1.0, 1.0, 1.0, 0.95 if self.finder_view_mode == m else 0.55))
 
-        # Search Pill with Vector Loupe (subtle rest state)
+        # Search Pill with Vector Loupe (NO hard border stroke!)
         sp_x = tb_x + tb_w - 165
         draw_squircle(cr, sp_x, tb_y + 8, 155, 28, 6)
         cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
         cr.fill()
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
-        cr.set_line_width(0.8)
-        draw_squircle(cr, sp_x, tb_y + 8, 155, 28, 6)
-        cr.stroke()
 
         draw_search_loupe(cr, sp_x + 14, tb_y + 22, 13, (1.0, 1.0, 1.0, 0.55))
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
@@ -1597,68 +1622,127 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         cr.move_to(sp_x + 28, tb_y + 26)
         cr.show_text("Buscar")
 
-        # Divider line below toolbar
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
-        cr.rectangle(tb_x, tb_y + 44, tb_w, 1)
-        cr.fill()
-
-        # 7. Main Grid of Folders with Bipartite Selection (Seleção Bipartida)
+        # 7. Main Content View (Icons Cmd+1, List Cmd+2, Columns Cmd+3, Gallery Cmd+4)
         fx_start = x + 230
         fy_start = y + 68
         folders = [
-            "Applications", "Developer", "Documents", "Downloads",
-            "Library", "Movies", "Music", "Pictures", "System", "Users"
+            ("Applications", 1), ("Developer", 5), ("Documents", 2), ("Downloads", 3),
+            ("Library", 0), ("Movies", 0), ("Music", 0), ("Pictures", 0), ("System", 0), ("Users", 0)
         ]
-        for idx, fname in enumerate(folders):
-            col = idx % 4
-            row = idx // 4
-            fx = fx_start + col * 155
-            fy = fy_start + row * 110
-            is_sel = (self.finder_selected_folder == fname)
 
-            if is_sel:
-                # 1. Behind ICON ONLY: 84x84px rounded square (R=8px) in rgba(255, 255, 255, 0.12) with NO blue border!
-                cr.set_source_rgba(1.0, 1.0, 1.0, 0.12)
-                draw_squircle(cr, fx + 5, fy - 6, 84, 84, 8)
-                cr.fill()
+        if self.finder_view_mode == "icons":
+            for idx, (fname, gid) in enumerate(folders):
+                col = idx % 4
+                row = idx // 4
+                fx = fx_start + col * 155
+                fy = fy_start + row * 110
+                is_sel = (self.finder_selected_folder == fname)
 
-                # Draw exact S-curve Apple folder
-                draw_exact_macos_folder(cr, fx + 10, fy, 74, 58)
+                if is_sel:
+                    # Law #6:
+                    # 1. Behind ICON ONLY: neutral rounded square rgba(255, 255, 255, 0.12), R = 10px, ZERO blue border!
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.12)
+                    draw_squircle(cr, fx + 5, fy - 6, 84, 84, 10.0)
+                    cr.fill()
 
-                # 2. Behind TEXT LABEL ONLY: tight pill (w = text_w + 12px, h = 18px, R = 4px) in solid macOS blue #0A60FF
-                cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-                cr.set_font_size(12)
-                ext = cr.text_extents(fname)
-                w_pill = ext.width + 12.0
-                h_pill = 18.0
-                pill_x = fx + 47 - w_pill / 2.0
-                pill_y = fy + 82
-                cr.set_source_rgb(10 / 255.0, 96 / 255.0, 255 / 255.0) # #0A60FF
-                draw_squircle(cr, pill_x, pill_y, w_pill, h_pill, 4)
-                cr.fill()
+                    draw_exact_macos_folder(cr, fx + 10, fy, 74, 58, glyph_id=gid)
 
-                # Pure white bold text
-                cr.set_source_rgb(1.0, 1.0, 1.0)
-                cr.move_to(pill_x + 6, pill_y + 13)
-                cr.show_text(fname)
+                    # 2. Behind TEXT LABEL ONLY: solid blue pill #0058D0, R = 4.5px, padding 2px 6px, white Semibold text!
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+                    cr.set_font_size(12)
+                    ext = cr.text_extents(fname)
+                    w_pill = ext.width + 12.0
+                    h_pill = 18.0
+                    pill_x = fx + 47 - w_pill / 2.0
+                    pill_y = fy + 82
+                    cr.set_source_rgb(0.0 / 255.0, 88.0 / 255.0, 208.0 / 255.0) # #0058D0
+                    draw_squircle(cr, pill_x, pill_y, w_pill, h_pill, 4.5)
+                    cr.fill()
 
-            else:
-                # Unselected folder
-                draw_exact_macos_folder(cr, fx + 10, fy, 74, 58)
+                    cr.set_source_rgb(1.0, 1.0, 1.0)
+                    cr.move_to(pill_x + 6.0, pill_y + 13.0)
+                    cr.show_text(fname)
+                else:
+                    draw_exact_macos_folder(cr, fx + 10, fy, 74, 58, glyph_id=gid)
 
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+                    cr.set_font_size(12)
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.90)
+                    ext = cr.text_extents(fname)
+                    cr.move_to(fx + 47 - ext.width / 2.0, fy + 94)
+                    cr.show_text(fname)
+        elif self.finder_view_mode == "list":
+            # List View (Cmd+2) with disclosure chevrons and sortable columns
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(11)
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.45)
+            cr.move_to(fx_start + 24, fy_start)
+            cr.show_text("Nome")
+            cr.move_to(fx_start + 260, fy_start)
+            cr.show_text("Data de Modificacao")
+            cr.move_to(fx_start + 430, fy_start)
+            cr.show_text("Tamanho")
+            cr.move_to(fx_start + 520, fy_start)
+            cr.show_text("Tipo")
+            ry = fy_start + 18
+            for idx, (fname, gid) in enumerate(folders):
+                is_sel = (self.finder_selected_folder == fname)
+                if is_sel:
+                    cr.set_source_rgb(0.0 / 255.0, 88.0 / 255.0, 208.0 / 255.0)
+                    draw_squircle(cr, fx_start, ry - 14, tb_w - 10, 24, 5.0)
+                    cr.fill()
+                elif idx % 2 == 1:
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.03)
+                    draw_squircle(cr, fx_start, ry - 14, tb_w - 10, 24, 5.0)
+                    cr.fill()
+                draw_chevron(cr, fx_start + 10, ry - 2, 10, "right", (1.0, 1.0, 1.0, 0.55))
+                draw_exact_macos_folder(cr, fx_start + 22, ry - 10, 18, 14, glyph_id=0)
                 cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
                 cr.set_font_size(12)
-                cr.set_source_rgba(1.0, 1.0, 1.0, 0.90)
-                ext = cr.text_extents(fname)
-                cr.move_to(fx + 47 - ext.width / 2.0, fy + 94)
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
+                cr.move_to(fx_start + 46, ry + 2)
                 cr.show_text(fname)
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.60)
+                cr.move_to(fx_start + 260, ry + 2)
+                cr.show_text("Hoje, 22:30")
+                cr.move_to(fx_start + 430, ry + 2)
+                cr.show_text("--")
+                cr.move_to(fx_start + 520, ry + 2)
+                cr.show_text("Pasta")
+                ry += 26
+        elif self.finder_view_mode == "columns":
+            # Miller Columns View (Cmd+3) with rightmost preview pane
+            col_w = 200.0
+            for idx, (fname, _gid) in enumerate(folders):
+                ry = fy_start + idx * 26
+                is_sel = (self.finder_selected_folder == fname)
+                if is_sel:
+                    cr.set_source_rgb(0.0 / 255.0, 88.0 / 255.0, 208.0 / 255.0)
+                    draw_squircle(cr, fx_start, ry - 14, col_w - 8, 24, 5.0)
+                    cr.fill()
+                draw_exact_macos_folder(cr, fx_start + 8, ry - 10, 18, 14)
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.92)
+                cr.move_to(fx_start + 32, ry + 2)
+                cr.show_text(fname)
+                draw_chevron(cr, fx_start + col_w - 20, ry - 2, 10, "right", (1.0, 1.0, 1.0, 0.55))
+            # Preview pane on the right
+            px = fx_start + col_w + 24
+            draw_exact_macos_folder(cr, px + 60, fy_start + 30, 120, 96, glyph_id=1)
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(14)
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
+            cr.move_to(px + 60, fy_start + 150)
+            cr.show_text(self.finder_selected_folder)
+        else:
+            # Gallery View (Cmd+4) with large hero preview and bottom carousel
+            draw_exact_macos_folder(cr, fx_start + 200, fy_start + 20, 180, 142, glyph_id=1)
+            for idx, (fname, gid) in enumerate(folders[:6]):
+                tx = fx_start + 40 + idx * 88
+                ty = fy_start + 280
+                draw_exact_macos_folder(cr, tx, ty, 56, 44, glyph_id=gid)
 
         # 8. Status Bar Footer (28px)
         stat_y = y + h - 28
-        cr.set_source_rgba(1.0, 1.0, 1.0, 0.06)
-        cr.rectangle(x + 220, stat_y, w - 230, 1)
-        cr.fill()
-
         draw_exact_macos_folder(cr, x + 230, stat_y + 6, 18, 14)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(11)
