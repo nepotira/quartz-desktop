@@ -2,7 +2,7 @@ name: QuartzLinux CI (Cloud Compilation & Test)
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, 'feat/**', 'fix/**', 'docs/**', 'refactor/**', 'test/**' ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:

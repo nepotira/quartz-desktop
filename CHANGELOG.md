@@ -7,6 +7,18 @@ e este projeto adere ao [Semantic Versioning (SemVer 2.0.0)](https://semver.org/
 
 ---
 
+## [0.20.2-alpha.1] - 2026-10-15
+
+### Added & Changed (Governança de Engenharia de Software, SemVer 2.0.0 & Compilação Exclusiva em Nuvem via GitHub CLI)
+- **Protocolo Oficial de Governança (`docs/ENGINEERING_STANDARDS.md`)**:
+  - Formalização dos **3 Pilares Obrigatórios de Engenharia**: (1) Documentação Técnica e Matemática Integral (`#![deny(missing_docs)]` + `CHANGELOG.md` Keep a Changelog 1.1.0 + GLSL 450), (2) Controle de Versão Git & GitHub com Branches Semânticos e Conventional Commits 1.0.0, e (3) Versionamento Semântico Estrito (SemVer 2.0.0) sincronizado em tripla camada (`Cargo.toml`, `CHANGELOG.md` e Git Annotated Tags).
+  - Codificação permanente das **6 Leis Anti-Fraude Gráfica (Zero-Tolerance Policy)** do macOS Tahoe 26 como barreira obrigatória de auditoria pré-commit.
+  - Instituição da **Política Zero Local Build**: proibição absoluta de compilação na máquina local do usuário; 100% das verificações e builds ocorrem nos runners do GitHub Actions acionados via GitHub CLI (`gh`).
+- **Pipeline de CI em Nuvem (`.github/workflows/ci.yml`)**:
+  - Habilitação de gatilhos automáticos de compilação e testes para todos os prefixos de branches semânticos (`feat/**`, `fix/**`, `docs/**`, `refactor/**`, `test/**`).
+
+---
+
 ## [0.20.1-alpha.1] - 2026-10-15
 
 ### Fixed & Enhanced (Intervenção Cirúrgica de Fidelidade Visual — macOS Tahoe 26)

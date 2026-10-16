@@ -1,135 +1,135 @@
-# Diretrizes de Engenharia de Software, Versionamento e Documentação
-## Projeto: QuartzLinux (`qz-desktop`) — macOS Tahoe 26 Architecture
+# Diretrizes de Engenharia de Software, Documentação, Controle de Versão Git/GitHub e Versionamento Semântico
+## Projeto: QuartzLinux (`qz-desktop`) — Clean Slate macOS Tahoe 26 Architecture
 
 ---
 
-## 1. Visão Geral e Princípios Fundamentais
+## 1. Visão Geral e Mandato de Governança
 
-Este documento estabelece as **Regras Mandatórias de Engenharia de Software** que devem ser seguidas de forma estrita e sem exceções para toda e qualquer alteração no repositório **QuartzLinux (`qz-desktop`)**, por mais microscópica ou pontual que seja.
+Este documento institui o **Protocolo Oficial de Engenharia de Software** que deve ser cumprido de maneira incondicional a cada alteração realizada no repositório **QuartzLinux (`qz-desktop`)**, por menor ou mais pontual que seja.
 
-O objetivo deste projeto é construir um Compositor Wayland e Ambiente Desktop em Rust (Edition 2024) com fidelidade matemática, física, visual e comportamental absoluta ao **macOS Tahoe 26**. Para garantir qualidade de nível militar e estabilidade de produção, a disciplina de engenharia de software é intransigente.
-
----
-
-## 2. Regras de Documentação Obrigatória (Documentation Integrity)
-
-### A. Política `missing_docs` Zero-Tolerance
-- Toda crate do workspace deve declarar `#![deny(missing_docs)]` em seu arquivo raiz (`src/lib.rs` ou `src/main.rs`).
-- **Nenhum item público pode existir sem documentação:**
-  - Módulos (`//! # Nome do Módulo`) com explicação arquitetural do propósito, papel no subsistema do macOS e relações de dependência.
-  - Estruturas (`struct`), uniões e tuplas.
-  - Todos os campos individuais de estruturas (`pub field: Type`).
-  - Enumerações (`enum`) e todas as suas variantes.
-  - Todos os campos estruturados de variantes de enum (`Variant { field: Type }`).
-  - Funções livres e métodos associados (`fn`, `pub fn`, métodos de traits).
-  - Traits e tipos associados.
-  - Constantes (`const`), estáticos (`static`) e apelidos de tipo (`type`).
-
-### B. Estrutura Padrão de Documentação de Funções e Métodos
-Toda função ou método não trivial deve conter as seguintes seções Rustdoc quando aplicável:
-1. **Descrição Sumária:** Frase clara no imperativo ou presente explicando o efeito da função.
-2. **Fundamentação Matemática / Física (se aplicável):**
-   - Equações diferenciais, matrizes de transformação, perfis de cor ou integrais analíticas formatadas em KaTeX/LaTeX (`$...$` ou `$$...$$`) e representação textual.
-   - Referência explícita aos presets do macOS Tahoe 26 (ex: $\zeta = 1.0$, $\omega_0 = \sqrt{k/m}$).
-3. **Parâmetros (`Arguments`):** Significado físico e unidades de medida (ex: pixels, segundos, radianos, coordenadas locais de superfície).
-4. **Erros (`# Errors`):** Lista exaustiva das condições que provocam o retorno de `Err(RendererError::...)` ou equivalente.
-5. **Pânico (`# Panics`):** Garantia explícita de ausência de pânico em código de produção do compositor.
-
-### C. Documentação de Shaders GLSL 450
-- Todo arquivo GLSL em `crates/qz-renderer/shaders/` deve conter:
-  - Cabeçalho explicando a finalidade visual e física (ex: Dual-Kawase, SDF Squircle $G^2$, Lente Refrativa).
-  - Documentação de cada `layout(location = ...)` de entrada e saída.
-  - Documentação detalhada dos blocos `layout(push_constant)` e uniformes de textura `layout(binding = ...)`.
-  - Comentários passo a passo numerados correspondendo aos estágios analíticos de renderização (1. Difração/Refração, 2. Dispersão Cromática, 3. Boost de Saturação Rec.709, 4. Vibrancy Blend, 5. Specular Rim, 6. Dithering).
-
-### D. Manutenção Viva do `CHANGELOG.md`
-- Toda alteração que adicione, modifique, deprecie ou corrija comportamento no repositório **deve obrigatoriamente atualizar o arquivo `CHANGELOG.md`** na raiz do workspace, seguindo o padrão internacional [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
-- As seções padrão são:
-  - `Added` (Novas funcionalidades e novos subsistemas).
-  - `Changed` (Modificações em comportamentos existentes ou refatorações).
-  - `Deprecated` (Funcionalidades marcadas para remoção futura).
-  - `Removed` (Funcionalidades ou código legado excluído).
-  - `Fixed` (Correções de bugs ou ajustes em testes/compilação).
-  - `Security` (Melhorias de segurança, integridade de memória e tratamento de erros).
+Toda intervenção no código-fonte deve obedecer simultaneamente aos **3 Pilares de Governança de Engenharia**:
+1. **Documentação Técnica, Matemática e Arquitetural Viva (`#![deny(missing_docs)]` + `CHANGELOG.md` + Especificação de Shaders GLSL 450)**
+2. **Controle de Versão Profissional Git & GitHub (Isolamento em Branches, Conventional Commits 1.0.0, Merges Rastreáveis e Compilação 100% em Nuvem via GitHub CLI `gh`)**
+3. **Versionamento Semântico Estrito (SemVer 2.0.0 Sincronizado entre `Cargo.toml`, `CHANGELOG.md` e Git Annotated Tags)**
 
 ---
 
-## 3. Versionamento Semântico Estrito (SemVer 2.0.0)
+## 2. As 6 Leis Anti-Fraude Gráfica (Zero-Tolerance Policy)
 
-O projeto adota rigorosamente a especificação [Semantic Versioning 2.0.0](https://semver.org/lang/pt-BR/):
+Nenhuma alteração pode ser comitada ou mesclada se violar qualquer uma das 6 leis abaixo:
 
-$$\text{VERSÃO} = \text{MAJOR}.\text{MINOR}.\text{PATCH}[-\text{PRERELEASE}]$$
-
-### A. Regras de Incremento
-1. **MAJOR (`X.0.0`):**
-   - Incrementado quando ocorrem quebras incompatíveis na API pública de crates fundamentais, mudanças radicais na arquitetura de protocolos Wayland que quebrem clientes existentes, ou na transição da versão pré-1.0 para a versão `1.0.0` estável (produção completa).
-2. **MINOR (`0.Y.0` ou `X.Y.0`):**
-   - Incrementado a cada conclusão de uma das 17 fases ou subsistemas obrigatórios do macOS Tahoe 26 (ex: Fase 1 $\to$ `0.1.0-alpha.1`, Fase 2 $\to$ `0.2.0-alpha.1`, Fase 3 $\to$ `0.3.0-alpha.1`).
-   - Adição de novos protocolos Wayland, novos shaders, novas crates ou novos recursos retrocompatíveis.
-3. **PATCH (`0.Y.Z` ou `X.Y.Z`):**
-   - Incrementado para correções de bugs retrocompatíveis, ajustes matemáticos de precisão em shaders, otimizações de performance sem alteração de API e correções de avisos de compilação.
-4. **Pre-release Identifier (`-alpha.N`, `-beta.N`, `-rc.N`):**
-   - Durante o desenvolvimento ativo do monorepo pré-1.0, todas as versões devem ser marcadas com o identificador de pré-lançamento adequado (ex: `0.1.0-alpha.1`, `0.2.0-alpha.1`).
-
-### B. Sincronização de Versões no Workspace
-- O arquivo raiz [`Cargo.toml`](file:///home/nepo/Downloads/MacTux/Cargo.toml) define `[workspace.package.version]`.
-- Cada crate filha deve herdar a versão via `version.workspace = true` ou manter paridade exata com o marco arquitetural em desenvolvimento.
-- Toda versão formal do workspace deve gerar uma Git Tag anotada no formato `vX.Y.Z-prerelease`.
+1. **PROIBIDO USAR FONTES, GLIFOS OU UNICODE PARA ÍCONES (ZERO `▯` TOFU):**
+   - É terminantemente proibido usar caracteres Unicode privados (`\u{F8FF}`), emojis ou glifos de fontes de texto para desenhar o logotipo da Maçã, ícones da barra superior (Wi-Fi, Bateria, Busca, Control Center), ícones da Sidebar do Finder, pastas ou ícones do Dock.
+   - O renderizador de fontes (`FreeType`/`HarfBuzz`) só pode receber texto alfanumérico legível. **100% dos ícones do sistema devem ser renderizados matematicamente via Shaders Procedurais (SDFs compostos, curvas de Bézier cúbicas e gradientes multi-stop) ou paths vetoriais rasterizados via GPU (`qz-icons`)**.
+2. **PROIBIDO FINGIR LIQUID GLASS COM ALPHA BLENDING (`alpha = 0.7`):**
+   - É proibido pintar a Sidebar, a Menu Bar, o Spotlight ou o Dock usando apenas uma cor semi-transparente no mesmo RenderPass do papel de parede. Nenhuma linha diagonal ou forma do papel de parede pode jamais aparecer nítida atrás do vidro.
+   - O pipeline deve renderizar o fundo em `FBO_Scene`, executar a **Pirâmide Dual-Kawase de 5 Níveis de Downsample + 5 Níveis de Upsample ($\sigma_{\text{eq}} \ge 48\text{px}$)** e/ou o *Vogel Disk Blur* em FBO separado, aplicar refração ótica de lente nas bordas curvas ($G^2$ Squircle), aberração cromática, saturação Luma $1.95\times$, *Color Dodge/Burn*, *Interleaved Gradient Noise* e borda especular de `1.0px` + hairline externa de `0.5px`.
+3. **PROIBIDO SOMBRAS RETANGULARES DURAS:**
+   - Jamais desenhe um retângulo preto/cinza deslocado atrás de uma janela. Toda sombra deve ser calculada analiticamente no Fragment Shader em um quad expandido (`+90px` em cada direção) usando a aproximação polinomial de Abramowitz & Stegun para a Função de Erro Gaussiana (`erf`) em **duas camadas simultâneas** (Ambient Occlusion de contato $\sigma_1 = 4\text{px}, \Delta y_1 = 2\text{px}$ + Penumbra profunda $\sigma_2 = 42\text{px}, \Delta y_2 = 24\text{px}$).
+4. **PROIBIDO ARCOS CIRCULARES COMUNS:**
+   - Todos os cantos arredondados de janelas, Sidebars, Dock, menus, popovers e ícones devem usar a Função de Distância com Sinal (SDF) de **Superelipse / Squircle com continuidade de curvatura $G^2$** (norma $L_p$ com $p = 2.35$ nos cantos), nunca círculos simples.
+5. **PROIBIDO COLAR A SIDEBAR NA BORDA OU USAR BORDAS BRANCAS DE HTML:**
+   - No **macOS Tahoe 26**, a Sidebar do Finder e dos Ajustes é uma **Floating Glass Pill** descolada **`10px`** da esquerda, do topo e da base da janela (`x = win.x + 10`, `y = win.y + 10`, `w = 205`, `h = win.h - 20`, `R = 11px`), flutuando com sombra própria e sem linha reta vertical dividindo a janela. Os botões da Toolbar (`<`, `>`, Visualizações, Busca) **não possuem bordas brancas duras de 1px**.
+6. **PROIBIDO SELEÇÃO ESTILO WINDOWS EXPLORER NO FINDER:**
+   - Na visualização em Ícones (`Cmd+1`) do Finder, quando uma pasta ou arquivo está selecionado, é proibido desenhar um retângulo azul englobando o ícone e o texto juntos:
+     - Atrás do **ícone** apenas: um quadrado arredondado neutro (`rgba(255, 255, 255, 0.12)`, `R = 10px`) **sem nenhuma borda azul**.
+     - Atrás do **rótulo de texto** apenas: uma pílula azul sólida (`#0058D0`, `R = 4.5px`, padding `2px 6px`) com texto branco `#FFFFFF` em Semibold.
 
 ---
 
-## 4. Política de Git, Branches e Commits Convencionais
+## 3. Pilar I — Regras de Documentação Obrigatória (Documentation Integrity)
 
-### A. Estratégia de Branches
-O repositório utiliza o fluxo de desenvolvimento baseado em branches temáticos e integração contínua (Trunk-Based Development com Feature Branches):
+### A. Política `#![deny(missing_docs)]` em Todo o Workspace
+- Toda crate do workspace (`qz-animation`, `qz-icons`, `qz-renderer`, `qz-compositor`, `qz-shell`, `qz-spotlight`, `qz-finder`, `qz-quicklook`, `qz-screenshot`, `qz-daemons`, `qz-session-lock`, `qz-toolkit`, apps e compat) deve declarar `#![deny(missing_docs)]` em seu arquivo raiz (`src/lib.rs`).
+- **Nenhum item público pode existir sem documentação Rustdoc completa:**
+  - Módulos (`//! # Nome do Módulo`) explicando propósito arquitetural, papel no macOS Tahoe 26 e invariantes matemáticos.
+  - Estruturas (`struct`), campos públicos (`pub field: Type`), enumerações (`enum`), variantes e métodos (`pub fn`).
+  - Constantes (`pub const`), tipos associados (`type`) e traits (`pub trait`).
+
+### B. Documentação Científica e Matemática
+- Toda equação diferencial (molas $C^2$ contínuas), integral Gaussiana (`erf`), SDF de Superelipse $G^2$ ou transformação de cor Rec.709 deve ser documentada em notação matemática LaTeX/KaTeX (`$...$` ou `$$...$$`) diretamente nas docstrings do item correspondente.
+- Proibição absoluta de `// TODO`, `todo!()`, `unimplemented!()` ou placeholders.
+
+### C. Manutenção Viva do `CHANGELOG.md`
+- **Cada alteração realizada no repositório — por mínima que seja — deve obrigatoriamente ser registrada no arquivo [`CHANGELOG.md`](file:///home/nepo/Downloads/MacTux/CHANGELOG.md)** na raiz do projeto, seguindo rigorosamente o padrão internacional [Keep a Changelog 1.1.0](https://keepachangelog.com/pt-BR/1.1.0/):
+  - `Added`: Novos crates, shaders, módulos, animações ou recursos.
+  - `Changed`: Evoluções arquiteturais, refinamentos matemáticos ou ajustes de parâmetros.
+  - `Fixed`: Correções de bugs, ajustes de geometria ou conformidade com as 6 Leis Anti-Fraude.
+  - `Removed`: Remoção de código obsoleto.
+  - `Security`: Garantias de segurança de memória e eliminação de pânicos.
+
+---
+
+## 4. Pilar II — Controle de Versão Git, Branches e Compilação em Nuvem via GitHub CLI (`gh`)
+
+### A. Regra Absoluta de Compilação Remota (Zero Local Build)
+- **É TERMINANTEMENTE PROIBIDO executar `cargo build`, `cargo check`, `cargo test` ou `cargo clippy` na máquina local do usuário.**
+- Toda compilação, verificação de tipos e execução da suíte de testes do workspace deve ocorrer **exclusivamente nos runners remotos do GitHub Actions**, acionados e monitorados via GitHub CLI (`gh`):
+  1. Enviar o branch para o repositório remoto: `git push -u origin <branch>`
+  2. Acionar ou inspecionar o workflow de CI: `gh run list --branch <branch>` / `gh workflow run ci.yml --ref <branch>`
+  3. Acompanhar a compilação em nuvem até concluir: `gh run watch <run-id> --exit-status` ou `gh run view <run-id> --log-failed`
+  4. Somente após o status `✓ SUCCESS` no GitHub Actions o branch pode ser mesclado à `main` e receber sua tag SemVer.
+
+### B. Estratégia de Branches Semânticos
+Nenhuma alteração deve ser desenvolvida diretamente na `main`. Toda tarefa exige a criação de um branch dedicado:
 
 | Prefixo de Branch | Finalidade | Exemplo |
 |---|---|---|
-| `main` | Ramo principal protegido. Código compilável, estável e testado. | `main` |
-| `feat/*` | Desenvolvimento de nova fase, crate ou recurso do desktop. | `feat/phase-3-compositor-core` |
-| `fix/*` | Correção de defeito, falha de renderização ou bug de protocolo. | `fix/squircle-sdf-gradient-epsilon` |
-| `docs/*` | Documentação, diretrizes de engenharia, diagramas e changelog. | `docs/engineering-standards-and-versioning` |
-| `refactor/*` | Melhoria interna de código sem alteração de comportamento externo. | `refactor/split-dma-modifiers` |
-| `perf/*` | Otimização de pipeline gráfico, frame pacing ou alocação de memória. | `perf/vulkan-command-buffer-recycling` |
-| `test/*` | Expansão de suíte de testes unitários ou de integração. | `test/spring-c2-numerical-convergence` |
-| `chore/*` | Manutenção de dependências, scripts de automação ou CI. | `chore/update-github-actions-runners` |
+| `main` | Ramo principal estável. Sempre compilado e validado pelo GitHub Actions. | `main` |
+| `feat/*` | Implementação de novas fases, crates (`qz-icons`), shaders ou subsistemas. | `feat/phase-1-2-clean-slate-core` |
+| `fix/*` | Correção cirúrgica de bugs matemáticos, visuais ou de protocolo. | `fix/finder-bipartite-selection-pill` |
+| `docs/*` | Atualização de normas de engenharia, arquitetura, README e CHANGELOG. | `docs/engineering-governance-v2` |
+| `refactor/*` | Reestruturação interna mantendo invariantes e cobertura de testes. | `refactor/kawase-5-level-pyramid` |
+| `test/*` | Adição ou expansão de testes unitários e de integração. | `test/animation-18-catalog-suite` |
+| `ci/*` | Ajustes no pipeline `.github/workflows/ci.yml`. | `ci/enable-all-feature-branches` |
 
-### B. Especificação de Commits Convencionais (Conventional Commits 1.0.0)
-Toda mensagem de commit deve seguir estritamente o formato:
+### C. Commits Convencionais (Conventional Commits 1.0.0)
+Todo commit deve ser atômico, claro e formatado segundo o padrão Conventional Commits:
 
 ```text
-<tipo>(<escopo>): <descrição no imperativo e concisa>
+<tipo>(<escopo>): <descrição concisa no imperativo>
 
-[corpo opcional explicando motivação técnica, física e impacto na arquitetura]
+- Detalhamento técnico 1 (equações, arquivos e subsistemas afetados)
+- Detalhamento técnico 2 (conformidade com as 6 Leis Anti-Fraude)
 
-[rodapé opcional referenciando issues, tags ou breaking changes]
+Refs: #<issue/phase> | Version: vX.Y.Z-alpha.N
 ```
 
-#### Tipos Permitidos:
-- `feat`: Novo subsistema, pipeline gráfico, protocolo ou funcionalidade.
-- `fix`: Correção de bug em solver, shader, keymapper ou compositor.
-- `docs`: Documentação, Rustdoc, especificações técnicas e CHANGELOG.
-- `test`: Inclusão ou ajuste de testes automatizados.
-- `perf`: Otimização de tempo de quadro, latência de input ou uso de GPU.
-- `refactor`: Reestruturação de código sem adição de recurso ou correção de bug.
-- `ci`: Alterações no pipeline de compilação remota do GitHub Actions.
-- `chore`: Atualizações de dependências, `.gitignore` ou configurações de build.
-
-#### Escopos Padronizados do Monorepo:
-`animation`, `renderer`, `compositor`, `shell`, `spotlight`, `finder`, `quicklook`, `screenshot`, `daemons`, `session-lock`, `toolkit`, `portal`, `protocol`, `ci`, `standards`.
+- **Tipos permitidos:** `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `ci`, `chore`.
+- **Escopos oficiais:** `standards`, `workspace`, `animation`, `icons`, `renderer`, `compositor`, `shell`, `spotlight`, `finder`, `quicklook`, `screenshot`, `daemons`, `session-lock`, `toolkit`, `apps`, `compat`, `ci`.
 
 ---
 
-## 5. Checklist Mandatório de Auto-Aplicação a Cada Alteração
+## 5. Pilar III — Versionamento Semântico Estrito (SemVer 2.0.0)
 
-Antes de considerar qualquer alteração concluída, o engenheiro (IA) deve executar rigorosamente este checklist de 9 passos:
+O repositório adota estritamente o [Semantic Versioning 2.0.0](https://semver.org/lang/pt-BR/):
 
-1. **Isolamento de Ramo:** Criar ou comutar para o branch semântico apropriado (`feat/*`, `fix/*`, `docs/*`).
-2. **Código Zero-Tolerance:** Certificar-se de que não existem `// TODO`, `todo!()`, `unimplemented!()` ou blocos omitidos com `...`.
-3. **Documentação Completa:** Garantir que todos os itens novos e alterados possuam Rustdoc completo em conformidade com `#![deny(missing_docs)]`.
-4. **Fidelidade Matemática:** Confirmar que as equações analíticas, shaders e bindings físicos correspondem exatamente à especificação do macOS Tahoe 26.
-5. **Testes Unitários:** Adicionar ou atualizar testes que verifiquem a invariância dos dados e a convergência matemática.
-6. **Atualização do `CHANGELOG.md`:** Registrar detalhadamente a alteração na seção apropriada da versão corrente.
-7. **Verificação Local:** Executar `cargo test --workspace` garantindo **zero falhas e zero avisos (`warnings`)**.
-8. **Commit Convencional e Tag SemVer:** Criar commits atômicos padronizados e tags de versão anotadas se um marco foi atingido.
-9. **Publicação e Validação em Nuvem:** Enviar (`git push`) o branch e as tags para o GitHub, aguardar a execução do workflow de CI e certificar-se do status `✓ SUCCESS` no runner remoto.
+$$\text{VERSÃO} = \text{MAJOR}.\text{MINOR}.\text{PATCH}-\text{PRERELEASE}$$
+
+### A. Critérios de Incremento de Versão
+1. **MAJOR (`X.0.0`):** Mudanças arquiteturais incompatíveis na API pública do workspace ou lançamento de produção `1.0.0`.
+2. **MINOR (`0.Y.0-alpha.N`):** Conclusão de uma Fase Arquitetural, adição de uma nova crate (`qz-icons`), novo pipeline de shaders ou novo subsistema completo do macOS Tahoe 26.
+3. **PATCH (`0.Y.Z-alpha.N`):** Correções de bugs, refinamentos visuais/matemáticos, melhorias de documentação ou ajustes de CI sem quebra de compatibilidade.
+
+### B. Tripla Sincronização Obrigatória de Versão
+A cada nova versão lançada, **os 3 artefatos abaixo devem estar rigorosamente sincronizados**:
+1. **`Cargo.toml` (Raiz do Workspace):** Campo `[workspace.package] version = "X.Y.Z-alpha.N"` atualizado.
+2. **`CHANGELOG.md`:** Nova seção `## [X.Y.Z-alpha.N] - YYYY-MM-DD` documentando exaustivamente tudo o que foi adicionado, alterado ou corrigido.
+3. **Git Annotated Tag no GitHub:** Tag anotada criada com `git tag -a vX.Y.Z-alpha.N -m "Release vX.Y.Z-alpha.N: <resumo>"` e publicada no GitHub via `git push origin vX.Y.Z-alpha.N`.
+
+---
+
+## 6. Checklist Operacional de 10 Passos (Obrigatório a Cada Alteração)
+
+Para **toda e qualquer alteração**, siga invariavelmente esta sequência:
+
+1. **Branch Isolado:** Criar branch semântico a partir da `main` (`git checkout -b <tipo>/<nome>`).
+2. **Conformidade Anti-Fraude:** Auditar o código contra as 6 Leis Anti-Fraude Gráfica (Zero Font Icons, 5-Level Kawase + Refração Liquid Glass, Sombra Dupla `erf`, Squircle $G^2$ $p=2.35$, Floating Pill Sidebar `10px` inset sem bordas brancas duras na Toolbar, Seleção Bipartida no Finder).
+3. **Zero Placeholders:** Confirmar ausência total de `todo!()`, `unimplemented!()` ou `// TODO`.
+4. **Documentação Rustdoc & Shaders:** Garantir que todos os símbolos públicos obedeçam a `#![deny(missing_docs)]`.
+5. **Testes Unitários:** Escrever ou atualizar testes unitários cobrindo as novas funções e invariantes matemáticos.
+6. **Sincronização SemVer no `Cargo.toml`:** Incrementar a versão semântica do workspace de acordo com o escopo da mudança.
+7. **Registro no `CHANGELOG.md`:** Documentar a versão, data e todas as alterações nas categorias do Keep a Changelog.
+8. **Commit Convencional:** Realizar `git add` e `git commit` seguindo a especificação Conventional Commits 1.0.0.
+9. **Compilação e Testes em Nuvem via GitHub CLI (`gh`):** Fazer `git push` e validar a compilação/testes remotamente no GitHub Actions (`gh workflow run` / `gh run watch`) — **jamais compilar na máquina local**.
+10. **Merge Profissional e Tag Anotada:** Após `✓ SUCCESS` na nuvem, mesclar na `main` (`git merge --no-ff`), criar a tag anotada `vX.Y.Z-alpha.N` e publicar (`git push origin main --tags`).
