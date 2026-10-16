@@ -118,6 +118,13 @@ pub struct FileChooserSheet {
 }
 
 impl FileChooserSheet {
+    /// Sheet modal roll-down spring stiffness ($k = 400.0$, Pillar 4 #4 & Pillar 10).
+    pub const SHEET_SPRING_K: f64 = 400.0;
+    /// Sheet modal roll-down spring damping ($c = 35.0$, Pillar 4 #4 & Pillar 10).
+    pub const SHEET_SPRING_C: f64 = 35.0;
+    /// Initial 3D pitch angle when unfurling from parent window titlebar ($-8.0^\circ$).
+    pub const SHEET_INITIAL_PITCH_DEG: f32 = -8.0;
+
     /// Creates and presents a new `FileChooserSheet`.
     #[must_use]
     pub fn new(options: FileChooserOptions) -> Self {
@@ -131,6 +138,16 @@ impl FileChooserSheet {
             is_retarget_hovered: false,
             is_presented: true,
         }
+    }
+
+    /// Evaluates `(pitch_deg, scale_y, parent_scrim_opacity)` for normalized roll-down progress $p \in [0, 1]$.
+    #[inline]
+    pub fn evaluate_sheet_transform(progress: f32) -> (f32, f32, f32) {
+        let p = progress.clamp(0.0, 1.0);
+        let pitch_deg = Self::SHEET_INITIAL_PITCH_DEG * (1.0 - p);
+        let scale_y = 0.15 + 0.85 * p;
+        let scrim_opacity = 0.22 * p;
+        (pitch_deg, scale_y, scrim_opacity)
     }
 
     /// Updates directory contents with fresh items.

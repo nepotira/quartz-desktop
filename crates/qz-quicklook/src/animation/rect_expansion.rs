@@ -71,9 +71,18 @@ impl Default for RectExpansionAnimator {
 }
 
 impl RectExpansionAnimator {
+    /// Canonical Quick Look Spacebar Morph spring stiffness ($k = 420.0$).
+    pub const QUICKLOOK_SPRING_K: f64 = 420.0;
+    /// Canonical Quick Look Spacebar Morph spring damping ($c = 36.0$).
+    pub const QUICKLOOK_SPRING_C: f64 = 36.0;
+
     /// Creates a new animator morphing between `source_rect` and `target_rect`.
     pub fn new(source_rect: RectBounds, target_rect: RectBounds) -> Self {
-        let spring_params = SpringParams::window_open();
+        let spring_params = SpringParams {
+            mass: 1.0,
+            stiffness: Self::QUICKLOOK_SPRING_K,
+            damping: Self::QUICKLOOK_SPRING_C,
+        };
         let spring_progress = SpringAnimation::new(spring_params, 0.0, 0.0, 0.0);
 
         Self {

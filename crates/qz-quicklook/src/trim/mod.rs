@@ -38,6 +38,11 @@ pub struct MediaTrimController {
 }
 
 impl MediaTrimController {
+    /// Canonical QuickTime trim handle yellow hex color (`#FFD60A`).
+    pub const QUICKTIME_TRIM_YELLOW_HEX: &'static str = "#FFD60A";
+    /// Canonical QuickTime trim handle normalized RGB (`[1.0, 0.839, 0.039]`).
+    pub const QUICKTIME_TRIM_YELLOW_RGB: [f32; 3] = [1.0, 0.839, 0.039];
+
     /// Creates a trim controller for media of given duration.
     pub fn new(total_duration_secs: f64) -> Self {
         let duration = total_duration_secs.max(0.1);

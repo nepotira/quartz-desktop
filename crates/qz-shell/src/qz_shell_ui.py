@@ -798,6 +798,9 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         self.active_menu = None
         self.spotlight_visible = False
         self.spotlight_query = ""
+        self.spotlight_mode = 1  # 1: Universal, 2: Actions, 3: Clipboard, 4: App Library
+        self.quicklook_visible = False
+        self.screenshot_hud_visible = False
         self.control_center_visible = False
         self.brightness = 0.85
         self.volume = 0.70
@@ -1051,7 +1054,14 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             w = self.area.get_width()
             sp_x = (w - 680) / 2
             sp_y = self.area.get_height() * 0.20
-            if not (sp_x <= x <= sp_x + 680 and sp_y <= y <= sp_y + 260):
+            # Check mode tab clicks inside Spotlight (sp_y + 12 .. sp_y + 42)
+            if sp_x + 410 <= x <= sp_x + 668 and sp_y + 10 <= y <= sp_y + 44:
+                tab_idx = int((x - (sp_x + 410)) / 64.0) + 1
+                if 1 <= tab_idx <= 4:
+                    self.spotlight_mode = tab_idx
+                    self.area.queue_draw()
+                    return
+            if not (sp_x <= x <= sp_x + 680 and sp_y <= y <= sp_y + 300):
                 self.spotlight_visible = False
                 self.area.queue_draw()
 
@@ -1184,6 +1194,9 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                         self.terminal_visible = True
                         self.terminal_minimized = False
                         self.active_window = "terminal"
+                    elif it_id == "launchpad":
+                        self.spotlight_visible = True
+                        self.spotlight_mode = 4
                     elif it_id == "settings":
                         self.control_center_visible = True
                     self.area.queue_draw()
@@ -1201,14 +1214,25 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             self.area.queue_draw()
             return True
 
+        if keyval == Gdk.KEY_F5:
+            self.screenshot_hud_visible = not self.screenshot_hud_visible
+            self.area.queue_draw()
+            return True
+
         if keyval == Gdk.KEY_Escape:
             self.spotlight_visible = False
+            self.quicklook_visible = False
+            self.screenshot_hud_visible = False
             self.control_center_visible = False
             self.active_menu = None
             self.area.queue_draw()
             return True
 
         if self.spotlight_visible:
+            if (state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SUPER_MASK)) and keyval in (Gdk.KEY_1, Gdk.KEY_2, Gdk.KEY_3, Gdk.KEY_4):
+                self.spotlight_mode = keyval - Gdk.KEY_0
+                self.area.queue_draw()
+                return True
             if keyval == Gdk.KEY_BackSpace:
                 self.spotlight_query = self.spotlight_query[:-1]
             elif keyval == Gdk.KEY_Return:
@@ -1223,6 +1247,12 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
                 self.spotlight_query = ""
             elif keyval < 256 and chr(keyval).isprintable():
                 self.spotlight_query += chr(keyval)
+            self.area.queue_draw()
+            return True
+
+        # Spacebar in Finder toggles Quick Look 120fps Morph preview (Pillar 9)
+        if keyval == Gdk.KEY_space and self.active_window == "finder" and self.finder_visible and not self.finder_minimized:
+            self.quicklook_visible = not self.quicklook_visible
             self.area.queue_draw()
             return True
 
@@ -1337,12 +1367,18 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
         # 4. Top Menu Bar (Liquid Glass 28px)
         self.draw_menubar(cr, width)
 
-        # 5. Overlays (Menus, Control Center, Spotlight)
+        # 5. Overlays (Menus, Control Center, Quick Look, Screenshot HUD, Spotlight)
         if self.active_menu:
             self.draw_dropdown_menu(cr)
 
         if self.control_center_visible:
             self.draw_control_center(cr, width)
+
+        if self.quicklook_visible:
+            self.draw_quicklook_modal(cr, width, height)
+
+        if self.screenshot_hud_visible:
+            self.draw_screenshot_hud(cr, width, height)
 
         if self.spotlight_visible:
             self.draw_spotlight(cr, width, height)
@@ -1884,9 +1920,10 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.show_text(hovered_name)
 
     def draw_spotlight(self, cr, width, height):
-        """Renders Spotlight Search bar with Liquid Glass and vector loupe."""
+        """Renders macOS Tahoe 26 4-Mode Spotlight (Universal, Actions, Clipboard #HEX, App Library)."""
         sp_w = 680.0
-        sp_h = 56.0 if not self.spotlight_query else 240.0
+        expanded = bool(self.spotlight_query) or self.spotlight_mode in (2, 3, 4)
+        sp_h = 285.0 if expanded else 56.0
         sp_x = (width - sp_w) / 2.0
         sp_y = height * 0.20
 
@@ -1910,12 +1947,32 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
 
         draw_search_loupe(cr, sp_x + 28, sp_y + 28, 20, (1.0, 1.0, 1.0, 0.65))
 
+        # 4-Mode Pill Tabs on right of Spotlight header (Cmd+1..4)
+        mode_labels = ["1 Busca", "2 Ações", "3 Clip", "4 Apps"]
+        for m_idx, m_lbl in enumerate(mode_labels, start=1):
+            tx = sp_x + 410 + (m_idx - 1) * 64
+            ty = sp_y + 15
+            if self.spotlight_mode == m_idx:
+                cr.set_source_rgba(*ACCENT_BLUE, 0.85)
+                draw_squircle(cr, tx, ty, 58, 26, 7)
+                cr.fill()
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.98)
+            else:
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.08)
+                draw_squircle(cr, tx, ty, 58, 26, 7)
+                cr.fill()
+                cr.set_source_rgba(1.0, 1.0, 1.0, 0.60)
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(10.5)
+            cr.move_to(tx + 9, ty + 17)
+            cr.show_text(m_lbl)
+
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(18)
         if not self.spotlight_query:
             cr.set_source_rgba(1.0, 1.0, 1.0, 0.35)
             cr.move_to(sp_x + 56, sp_y + 36)
-            cr.show_text("Buscar no Spotlight")
+            cr.show_text("Buscar no Spotlight (< 8ms)")
         else:
             cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
             cr.move_to(sp_x + 56, sp_y + 36)
@@ -1926,39 +1983,177 @@ class QuartzDesktopWindow(Gtk.ApplicationWindow):
             cr.rectangle(sp_x + 56 + ext.width + 2, sp_y + 18, 2, 22)
             cr.fill()
 
+        if expanded:
             cr.set_source_rgba(1.0, 1.0, 1.0, 0.10)
             cr.rectangle(sp_x, sp_y + 56, sp_w, 1)
             cr.fill()
 
-            results = [
-                ("Terminal", "Aplicativo - /usr/local/bin/qz-terminal"),
-                ("Ajustes do Sistema", "Aplicativo - /usr/local/bin/qz-settings"),
-                ("Monitor de Atividade", "Aplicativo - /usr/local/bin/qz-activity"),
-                ("Finder", "Gerenciador de Arquivos do macOS Tahoe"),
-            ]
-            matched = [r for r in results if self.spotlight_query.lower() in r[0].lower()] or results
+            if self.spotlight_mode == 3:
+                # Mode 3: Clipboard History with live #HEX color swatches
+                clips = [
+                    ("#0A84FF", "Cor CSS Hex — Azul macOS Tahoe 26", (0.04, 0.52, 1.0)),
+                    ("#30D158", "Cor CSS Hex — ECG Activity Monitor", (0.19, 0.82, 0.35)),
+                    ("#FFD60A", "Cor CSS Hex — QuickTime Trim Handle", (1.0, 0.84, 0.04)),
+                    ("cargo test --workspace", "Comando copiado há 2 min", None),
+                ]
+                cur_ry = sp_y + 88
+                for idx, (c_txt, c_desc, swatch) in enumerate(clips):
+                    if idx == 0:
+                        cr.set_source_rgba(*ACCENT_BLUE, 0.45)
+                        draw_squircle(cr, sp_x + 10, cur_ry - 20, sp_w - 20, 42, 8)
+                        cr.fill()
+                    if swatch:
+                        cr.set_source_rgb(*swatch)
+                        draw_squircle(cr, sp_x + 22, cur_ry - 13, 24, 24, 6)
+                        cr.fill()
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+                    cr.set_font_size(13.5)
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
+                    cr.move_to(sp_x + 56, cur_ry - 1)
+                    cr.show_text(c_txt)
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+                    cr.set_font_size(11)
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.55)
+                    cr.move_to(sp_x + 56, cur_ry + 14)
+                    cr.show_text(c_desc)
+                    cur_ry += 48
+            elif self.spotlight_mode == 4:
+                # Mode 4: Categorized App Library Grid
+                apps = [("finder", "Finder"), ("safari", "Safari"), ("terminal", "Terminal"),
+                        ("settings", "Ajustes"), ("activity", "Atividade"), ("launchpad", "Apps")]
+                for idx, (aid, aname) in enumerate(apps):
+                    gx = sp_x + 36 + idx * 104
+                    gy = sp_y + 88
+                    draw_dock_icon(cr, aid, gx, gy, 62)
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+                    cr.set_font_size(11.5)
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.92)
+                    ext = cr.text_extents(aname)
+                    cr.move_to(gx + 31 - ext.width / 2, gy + 82)
+                    cr.show_text(aname)
+            else:
+                results = [
+                    ("Terminal", "Aplicativo — /usr/local/bin/qz-terminal"),
+                    ("Ajustes do Sistema", "Aplicativo — /usr/local/bin/qz-settings"),
+                    ("Monitor de Atividade", "Aplicativo — /usr/local/bin/qz-activity-monitor"),
+                    ("Finder", "Gerenciador de Arquivos do macOS Tahoe 26"),
+                ] if self.spotlight_mode == 1 else [
+                    ("Arquivo > Exportar como PDF...", "Menu Ativo do Aplicativo (Menu Runner)"),
+                    ("Alternar Modo Escuro / Claro", "Ação Rápida do Sistema Tahoe 26"),
+                    ("Esvaziar Lixeira com Segurança", "Ação do Finder"),
+                    ("Bloquear Tela (Ctrl+Cmd+Q)", "Sessão & Segurança"),
+                ]
+                matched = [r for r in results if self.spotlight_query.lower() in r[0].lower()] or results
+                cur_ry = sp_y + 86
+                for idx, (r_name, r_desc) in enumerate(matched[:4]):
+                    if idx == 0:
+                        cr.set_source_rgba(*ACCENT_BLUE, 0.85)
+                        draw_squircle(cr, sp_x + 8, cur_ry - 20, sp_w - 16, 38, 8)
+                        cr.fill()
+                        cr.set_source_rgba(1.0, 1.0, 1.0, 1.0)
+                    else:
+                        cr.set_source_rgba(1.0, 1.0, 1.0, 0.85)
 
-            cur_ry = sp_y + 86
-            for idx, (r_name, r_desc) in enumerate(matched[:4]):
-                if idx == 0:
-                    cr.set_source_rgba(*ACCENT_BLUE, 0.85)
-                    draw_squircle(cr, sp_x + 8, cur_ry - 20, sp_w - 16, 38, 8)
-                    cr.fill()
-                    cr.set_source_rgba(1.0, 1.0, 1.0, 1.0)
-                else:
-                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.85)
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+                    cr.set_font_size(14)
+                    cr.move_to(sp_x + 46, cur_ry - 2)
+                    cr.show_text(r_name)
 
-                cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-                cr.set_font_size(14)
-                cr.move_to(sp_x + 46, cur_ry - 2)
-                cr.show_text(r_name)
+                    cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+                    cr.set_font_size(11)
+                    cr.set_source_rgba(1.0, 1.0, 1.0, 0.65 if idx == 0 else 0.45)
+                    cr.move_to(sp_x + 46, cur_ry + 13)
+                    cr.show_text(r_desc)
+                    cur_ry += 42
 
-                cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-                cr.set_font_size(11)
-                cr.set_source_rgba(1.0, 1.0, 1.0, 0.65 if idx == 0 else 0.45)
-                cr.move_to(sp_x + 46, cur_ry + 13)
-                cr.show_text(r_desc)
-                cur_ry += 42
+    def draw_quicklook_modal(self, cr, width, height):
+        """Renders Quick Look Spacebar Preview Daemon (Pillar 9: Markup, QuickTime Trim #FFD60A, Subject Lift)."""
+        ql_w, ql_h = 540.0, 390.0
+        ql_x = (width - ql_w) / 2.0
+        ql_y = (height - ql_h) / 2.0
+
+        draw_gaussian_window_shadow(cr, ql_x, ql_y, ql_w, ql_h, 14)
+
+        cr.save()
+        draw_squircle(cr, ql_x, ql_y, ql_w, ql_h, 14)
+        cr.clip()
+        cr.set_source_surface(self.blurred_backdrop, 0, 0)
+        cr.paint()
+        cr.set_source_rgba(0.11, 0.14, 0.20, 0.90)
+        cr.paint()
+        cr.restore()
+
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.28)
+        cr.set_line_width(1.0)
+        draw_squircle(cr, ql_x, ql_y, ql_w, ql_h, 14)
+        cr.stroke()
+
+        # Header bar with Markup & Share pills
+        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+        cr.set_font_size(13)
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
+        cr.move_to(ql_x + 18, ql_y + 26)
+        cr.show_text(f"Quick Look — {self.finder_selected_folder}")
+
+        for bx, blbl in [(ql_x + ql_w - 210, "Markup"), (ql_x + ql_w - 125, "Subject Lift")]:
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.10)
+            draw_squircle(cr, bx, ql_y + 10, 96, 24, 6)
+            cr.fill()
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.90)
+            cr.set_font_size(11)
+            cr.move_to(bx + 12, ql_y + 26)
+            cr.show_text(blbl)
+
+        # Center large folder preview
+        draw_macos_folder_icon(cr, ql_x + ql_w / 2 - 64, ql_y + 82, 128, self.finder_selected_folder)
+
+        # QuickTime Yellow Trim Bar (#FFD60A) at bottom of Quick Look
+        trim_x, trim_y, trim_w, trim_h = ql_x + 36, ql_y + ql_h - 58, ql_w - 72, 26
+        cr.set_source_rgba(0.06, 0.08, 0.12, 0.85)
+        draw_squircle(cr, trim_x, trim_y, trim_w, trim_h, 6)
+        cr.fill()
+        # Yellow QuickTime handles (#FFD60A)
+        cr.set_source_rgba(1.0, 0.839, 0.039, 0.95)
+        cr.set_line_width(3.0)
+        draw_squircle(cr, trim_x + 38, trim_y + 2, trim_w - 96, trim_h - 4, 4)
+        cr.stroke()
+
+    def draw_screenshot_hud(self, cr, width, height):
+        """Renders Cmd+Shift+5 Screenshot & Recording Liquid Glass HUD (Pillar 12)."""
+        hud_w, hud_h = 520.0, 62.0
+        hud_x = (width - hud_w) / 2.0
+        hud_y = height - 162.0
+
+        cr.set_source_rgba(0.0, 0.0, 0.0, 0.45)
+        draw_squircle(cr, hud_x - 4, hud_y + 6, hud_w + 8, hud_h + 8, 18)
+        cr.fill()
+
+        cr.save()
+        draw_squircle(cr, hud_x, hud_y, hud_w, hud_h, 16)
+        cr.clip()
+        cr.set_source_surface(self.blurred_backdrop, 0, 0)
+        cr.paint()
+        cr.set_source_rgba(0.12, 0.15, 0.22, 0.88)
+        cr.paint()
+        cr.restore()
+
+        cr.set_source_rgba(1.0, 1.0, 1.0, 0.28)
+        cr.set_line_width(1.0)
+        draw_squircle(cr, hud_x, hud_y, hud_w, hud_h, 16)
+        cr.stroke()
+
+        items = ["Tela Inteira", "Janela (Space)", "Porção", "Gravar", "Opções"]
+        for idx, lbl in enumerate(items):
+            ix = hud_x + 16 + idx * 98
+            if idx == 1:
+                cr.set_source_rgba(*ACCENT_BLUE, 0.82)
+                draw_squircle(cr, ix, hud_y + 12, 90, 38, 8)
+                cr.fill()
+            cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+            cr.set_font_size(11)
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.95)
+            cr.move_to(ix + 10, hud_y + 35)
+            cr.show_text(lbl)
 
     def draw_control_center(self, cr, width):
         """Renders Control Center panel."""

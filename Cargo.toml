@@ -23,7 +23,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.21.0-alpha.1"
+version = "0.22.0-alpha.1"
 edition = "2024"
 rust-version = "1.85"
 authors = ["QuartzLinux Core Systems Architecture Team <dev@quartzlinux.org>"]
