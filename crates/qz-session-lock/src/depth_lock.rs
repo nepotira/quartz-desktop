@@ -265,20 +265,23 @@ impl DepthLockScreen {
         self.auth_state.clone()
     }
 
+    /// Canonical password error shake initial amplitude ($14.0\text{px}$, Pillar 4 #16 & Pillar 14).
+    pub const SHAKE_AMPLITUDE_PX: f64 = 14.0;
+    /// Canonical password error shake exponential decay constant ($\gamma = 8.0\text{ s}^{-1}$).
+    pub const SHAKE_DECAY_GAMMA: f64 = 8.0;
+    /// Canonical password error shake angular frequency ($\omega = 10\pi\text{ rad/s}$).
+    pub const SHAKE_OMEGA_RAD: f64 = 10.0 * std::f64::consts::PI;
+
     /// Advances the lock screen animation and shake physics clock by `dt` seconds.
     pub fn tick(&mut self, dt: f64) {
         if let AuthState::FailedShake { elapsed_seconds, failed_count } = &mut self.auth_state {
             *elapsed_seconds += dt;
             let t = *elapsed_seconds;
 
-            // Canonical macOS Tahoe 26 Damped Harmonic Oscillator:
-            // Delta x(t) = 14 * exp(-8 * t) * sin(38 * t)
-            let amplitude = 14.0;   // 14px amplitude
-            let gamma = 8.0;        // Damping factor
-            let omega = 38.0;       // ~6.05 Hz angular frequency
-
-            let decay = (-gamma * t).exp();
-            let offset = amplitude * decay * (omega * t).sin();
+            // Canonical macOS Tahoe 26 Damped Harmonic Oscillator (Pillar 4 #16 & Pillar 14):
+            // Delta x(t) = 14 * exp(-8 * t) * sin(10 * pi * t)
+            let decay = (-Self::SHAKE_DECAY_GAMMA * t).exp();
+            let offset = Self::SHAKE_AMPLITUDE_PX * decay * (Self::SHAKE_OMEGA_RAD * t).sin();
             self.password_shake_offset_x = offset;
 
             // Shake ends when time reaches 0.45s or decay drops offset below 0.1px

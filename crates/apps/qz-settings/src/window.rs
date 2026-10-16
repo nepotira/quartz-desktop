@@ -145,11 +145,16 @@ impl SettingsWindow {
         format!("Ajustes do Sistema — {}", self.active_category().title())
     }
 
-    /// Bounding rectangle $[x, y, w, h]$ for the Floating Glass Pill Sidebar with 8px margins.
+    /// Canonical Floating Glass Pill inset from window edges ($10.0\text{px}$, Anti-Fraud Law #5 & Pillar 16.1).
+    pub const SIDEBAR_PILL_INSET_PX: f64 = 10.0;
+    /// Canonical Floating Glass Pill $G^2$ Squircle corner radius ($R = 11.0\text{px}$, Anti-Fraud Law #5).
+    pub const SIDEBAR_PILL_CORNER_RADIUS_PX: f64 = 11.0;
+
+    /// Bounding rectangle $[x, y, w, h]$ for the Floating Glass Pill Sidebar with 10px margins (`x = win.x + 10, y = win.y + 10, h = win.h - 20`).
     #[must_use]
     pub fn sidebar_pill_bounds(&self) -> (f64, f64, f64, f64) {
-        let margin = 8.0;
-        let pill_w = 244.0;
+        let margin = Self::SIDEBAR_PILL_INSET_PX;
+        let pill_w = 240.0;
         let pill_h = (self.size.y as f64 - 2.0 * margin).max(100.0);
         (margin, margin, pill_w, pill_h)
     }
@@ -157,7 +162,7 @@ impl SettingsWindow {
     /// Usable bounds $[x, y, w, h]$ for the right content pane scrolling underneath the sidebar glass.
     #[must_use]
     pub fn content_pane_bounds(&self) -> (f64, f64, f64, f64) {
-        let left_offset = 260.0; // 8px margin + 244px pill + 8px gap
+        let left_offset = 260.0; // 10px margin + 240px pill + 10px gap
         let content_w = (self.size.x as f64 - left_offset).max(100.0);
         let content_h = self.size.y as f64;
         (left_offset, 0.0, content_w, content_h)
@@ -220,8 +225,9 @@ mod tests {
     fn test_sidebar_pill_geometry() {
         let win = SettingsWindow::default();
         let (bx, by, bw, bh) = win.sidebar_pill_bounds();
-        assert_eq!((bx, by, bw), (8.0, 8.0, 244.0));
-        assert_eq!(bh, 680.0 - 16.0);
+        assert_eq!((bx, by, bw), (10.0, 10.0, 240.0));
+        assert_eq!(bh, 680.0 - 20.0);
+        assert_eq!(SettingsWindow::SIDEBAR_PILL_CORNER_RADIUS_PX, 11.0);
 
         let (cx, cy, cw, ch) = win.content_pane_bounds();
         assert_eq!((cx, cy), (260.0, 0.0));

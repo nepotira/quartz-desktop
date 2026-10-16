@@ -56,6 +56,9 @@ impl Default for AerialVideoDecelerator {
 }
 
 impl AerialVideoDecelerator {
+    /// Exponential velocity decay constant ($\lambda = 3.5\text{ s}^{-1}$, Pillar 4 #17 & Pillar 14).
+    pub const DECAY_LAMBDA: f64 = 3.5;
+
     /// Creates a new `AerialVideoDecelerator` for the given video asset.
     #[must_use]
     pub fn new(video_path: &str, video_duration_seconds: f64) -> Self {
@@ -68,6 +71,12 @@ impl AerialVideoDecelerator {
             elapsed_decel_seconds: 0.0,
             decel_duration_seconds: 2.40,
         }
+    }
+
+    /// Evaluates the exponential velocity deceleration $v(t) = v_0 \cdot e^{-3.5 t}$ (Pillar 4 #17 & Pillar 14).
+    #[must_use]
+    pub fn calculate_exponential_decel_speed(v0: f64, elapsed_seconds: f64) -> f64 {
+        v0 * (-Self::DECAY_LAMBDA * elapsed_seconds.max(0.0)).exp()
     }
 
     /// Evaluates the $C^2$ continuous cubic Hermite deceleration speed multiplier:

@@ -109,6 +109,13 @@ impl Default for CocoaTextEngine {
 }
 
 impl CocoaTextEngine {
+    /// Enforces `FT_LOAD_NO_HINTING` so glyph outlines preserve true vector curves without vertical/horizontal grid snapping (Pillar 2.2 #4 & Pillar 15).
+    pub const FT_LOAD_NO_HINTING_ENABLED: bool = true;
+    /// CoreText source gamma ($\gamma_{\text{src}} = 1.8$).
+    pub const GAMMA_CORETEXT_SRC: f64 = 1.8;
+    /// Standard sRGB/Display P3 target gamma ($\gamma_{\text{dst}} = 2.2$).
+    pub const GAMMA_DISPLAY_DST: f64 = 2.2;
+
     /// Creates a new `CocoaTextEngine`.
     #[must_use]
     pub fn new(metrics: FontMetrics, background_luminance: f64) -> Self {
@@ -126,6 +133,14 @@ impl CocoaTextEngine {
     #[must_use]
     pub fn quantize_quarter_pixel(x: f64) -> f64 {
         (x * 4.0).round() / 4.0
+    }
+
+    /// Applies CoreText stem-darkening gamma transfer ($\gamma = 1.8 \to 2.2$) to a glyph coverage alpha $\in [0, 1]$.
+    #[must_use]
+    pub fn apply_coretext_gamma_correction(coverage_alpha: f64) -> f64 {
+        coverage_alpha
+            .clamp(0.0, 1.0)
+            .powf(Self::GAMMA_CORETEXT_SRC / Self::GAMMA_DISPLAY_DST)
     }
 
     /// Calculates the adaptive stem darkening weight multiplier based on background luminance.
