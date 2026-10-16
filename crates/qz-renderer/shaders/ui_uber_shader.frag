@@ -70,10 +70,15 @@ vec3 sample_macos_liquid_glass(
 // ============================================================================
 // PRIMITIVAS SDF DE ALTA PRECISÃO (SQUIRCLE G2 E SEGMENTOS)
 // ============================================================================
+float smin(float a, float b, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return mix(b, a, h) - k * h * (1.0 - h);
+}
+
 float sdSquircleG2(vec2 p, vec2 b, float r) {
     vec2 q = abs(p) - (b - r);
     vec2 m = max(q, 0.0);
-    return pow(pow(m.x, 4.0) + pow(m.y, 4.0), 0.25) + min(max(q.x, q.y), 0.0) - r;
+    return pow(pow(m.x, 2.35) + pow(m.y, 2.35), 1.0 / 2.35) + min(max(q.x, q.y), 0.0) - r;
 }
 
 float sdSegment(vec2 p, vec2 a, vec2 b, float r) {
@@ -364,22 +369,44 @@ vec4 draw_dock_launchpad(vec2 uv) {
     return vec4(bg, mask);
 }
 
-// 4. ÍCONES DE STATUS (Apple Logo, Wi-Fi, Bateria, Lupa)
-float sdAppleLogo(vec2 p) {
+// 3.7. ACTIVITY MONITOR (Tela Obsidiana com Pulso ECG Luminoso #30D158)
+vec4 draw_dock_activity_monitor(vec2 uv) {
+    vec2 p = uv * 2.0 - 1.0;
+    float d_sq = sdSquircleG2(p, vec2(0.84), 0.36);
+    float mask = 1.0 - smoothstep(-0.02, 0.02, d_sq);
+    if (mask <= 0.001) return vec4(0.0);
+
+    vec3 bg = mix(vec3(0.11, 0.13, 0.17), vec3(0.05, 0.06, 0.09), uv.y);
+    float d_ecg = min(sdSegment(p, vec2(-0.68, 0.10), vec2(-0.28, 0.10), 0.036),
+                  min(sdSegment(p, vec2(-0.28, 0.10), vec2(-0.10, -0.46), 0.036),
+                  min(sdSegment(p, vec2(-0.10, -0.46), vec2(0.08, 0.48), 0.036),
+                  min(sdSegment(p, vec2(0.08, 0.48), vec2(0.24, -0.18), 0.036),
+                  min(sdSegment(p, vec2(0.24, -0.18), vec2(0.38, 0.10), 0.036),
+                      sdSegment(p, vec2(0.38, 0.10), vec2(0.68, 0.10), 0.036))))));
+    float glow = exp(-pow(max(d_ecg, 0.0) / 0.12, 2.0)) * 0.35;
+    bg += vec3(0.10, 0.85, 0.45) * glow;
+    bg = mix(bg, vec3(0.22, 0.96, 0.52), 1.0 - smoothstep(-0.015, 0.015, d_ecg));
+    return vec4(clamp(bg, 0.0, 1.0), mask);
+}
+
+// 4. ÍCONES DE STATUS (Apple Logo 5.1, Wi-Fi, Bateria, Lupa)
+float draw_apple_logo_sdf(vec2 uv) {
+    vec2 p = (uv - vec2(0.5, 0.54)) * 2.25;
     p.y = -p.y;
-    p *= 1.15;
     vec2 q = vec2(abs(p.x), p.y);
-    float lobe = length((q - vec2(0.24, -0.05)) * vec2(1.0, 0.88)) - 0.44;
-    float bottom_cut = -(p.y + 0.52 - 0.12 * exp(-18.0 * p.x * p.x));
-    float top_indent = length(p - vec2(0.0, 0.36)) - 0.16;
-    float body = max(lobe, bottom_cut);
-    body = max(body, -top_indent);
-    float bite = length(p - vec2(0.62, 0.06)) - 0.27;
+    float upper_lobe = length((q - vec2(0.23, 0.04)) * vec2(1.0, 0.92)) - 0.39;
+    float lower_lobe = length((q - vec2(0.18, -0.22)) * vec2(1.05, 0.85)) - 0.31;
+    float body = smin(upper_lobe, lower_lobe, 0.14);
+    float top_dip = length(p - vec2(0.0, 0.38)) - 0.15;
+    float bot_dip = length(p - vec2(0.0, -0.54)) - 0.14;
+    body = max(body, -top_dip);
+    body = max(body, -bot_dip);
+    float bite = length(p - vec2(0.58, 0.05)) - 0.26;
     body = max(body, -bite);
-    vec2 lp = p - vec2(0.10, 0.56);
-    float c = cos(0.70), s = sin(0.70);
+    vec2 lp = p - vec2(0.08, 0.54);
+    float c = cos(0.733), s = sin(0.733);
     lp = mat2(c, -s, s, c) * lp;
-    float leaf = length(lp * vec2(1.8, 0.9)) - 0.19;
+    float leaf = max(length(lp - vec2(0.0, -0.18)) - 0.29, length(lp - vec2(0.0, 0.18)) - 0.29);
     return min(body, leaf);
 }
 
@@ -420,8 +447,8 @@ void main() {
             frag_color = vec4(glass, 1.0);
             break;
         }
-        case 1: { // Apple Logo
-            float d = sdAppleLogo(p);
+        case 1: { // Apple Logo (Pillar 5.1)
+            float d = draw_apple_logo_sdf(uv);
             float a = 1.0 - smoothstep(-0.015, 0.015, d);
             vec3 col = (u.is_dark == 1) ? vec3(1.0) : vec3(0.1);
             frag_color = vec4(col, a);
@@ -473,6 +500,10 @@ void main() {
             float d = sdSearchLoupe(p);
             float a = 1.0 - smoothstep(-0.02, 0.02, d);
             frag_color = vec4(vec3(1.0), a);
+            break;
+        }
+        case 12: { // Activity Monitor 3D Dock Icon
+            frag_color = draw_dock_activity_monitor(uv);
             break;
         }
         default:

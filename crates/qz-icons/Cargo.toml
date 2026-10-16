@@ -1,0 +1,15 @@
+[package]
+name = "qz-icons"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "100% Procedural Mathematical SDF & Bezier Icon Engine for QuartzLinux (macOS Tahoe 26) — Zero External Fonts"
+
+[dependencies]
+glam = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+approx = { workspace = true }

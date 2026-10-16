@@ -43,6 +43,58 @@ pub struct SidebarItem {
     pub is_ejectable: bool,
 }
 
+/// Canonical macOS Tahoe 26 Floating Glass Pill Sidebar geometry (Anti-Fraud Law #5).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FloatingSidebarGeometry {
+    /// Detached X coordinate (`win_x + 10.0`).
+    pub x: f32,
+    /// Detached Y coordinate (`win_y + 10.0`).
+    pub y: f32,
+    /// Sidebar pill width (`205.0px` default).
+    pub width: f32,
+    /// Detached height (`win_h - 20.0`).
+    pub height: f32,
+    /// Squircle $G^2$ corner radius (`11.0px`).
+    pub corner_radius: f32,
+    /// Must always be `false` (no vertical straight line dividing the window!).
+    pub has_vertical_divider: bool,
+    /// Must always be `false` (toolbar buttons `<`, `>`, Views, Search have no hard 1px white borders!).
+    pub toolbar_buttons_have_hard_border: bool,
+}
+
+impl FloatingSidebarGeometry {
+    /// Canonical inset from left, top, and bottom window edges (`10.0px`).
+    pub const INSET_PX: f32 = 10.0;
+    /// Canonical sidebar pill corner radius (`11.0px`).
+    pub const CORNER_RADIUS_PX: f32 = 11.0;
+    /// Canonical default sidebar pill width (`205.0px`).
+    pub const DEFAULT_WIDTH_PX: f32 = 205.0;
+
+    /// Computes the Floating Glass Pill Sidebar bounds for a window at `(win_x, win_y, win_w, win_h)`.
+    pub fn compute(win_x: f32, win_y: f32, _win_w: f32, win_h: f32, sidebar_width: f32) -> Self {
+        Self {
+            x: win_x + Self::INSET_PX,
+            y: win_y + Self::INSET_PX,
+            width: sidebar_width,
+            height: (win_h - 2.0 * Self::INSET_PX).max(100.0),
+            corner_radius: Self::CORNER_RADIUS_PX,
+            has_vertical_divider: false,
+            toolbar_buttons_have_hard_border: false,
+        }
+    }
+}
+
+/// The 3 Finder Information panel modes (Pillar 10).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InfoPanelKind {
+    /// `Cmd+I`: Independent Get Info window per selected item.
+    StandardGetInfo,
+    /// `Opt+Cmd+I`: Dynamic live Inspector floating panel that updates as selection changes.
+    DynamicInspector,
+    /// `Ctrl+Cmd+I`: Consolidated Summary Info window for multiple items.
+    SummaryInfo,
+}
+
 /// State and geometry of a Finder window.
 pub struct FinderWindow {
     window_id: u32,
@@ -123,7 +175,7 @@ impl FinderWindow {
             view_mode: FinderViewMode::IconView,
             sidebar_items,
             is_sidebar_visible: true,
-            sidebar_width: 210.0,
+            sidebar_width: FloatingSidebarGeometry::DEFAULT_WIDTH_PX,
             window_size: [960.0, 620.0],
 
             icon_view: IconViewLayout::default(),
@@ -137,6 +189,17 @@ impl FinderWindow {
             dmg_manager: DiskImageManager::default(),
             desktop_stacks: DesktopStacksManager::default(),
         }
+    }
+
+    /// Computes the detached Floating Glass Pill Sidebar geometry (`x = win_x + 10`, `y = win_y + 10`, `w = 205`, `h = win_h - 20`, `R = 11px`).
+    pub fn floating_sidebar_geometry(&self, win_x: f32, win_y: f32) -> FloatingSidebarGeometry {
+        FloatingSidebarGeometry::compute(
+            win_x,
+            win_y,
+            self.window_size[0],
+            self.window_size[1],
+            self.sidebar_width,
+        )
     }
 
     /// Window identifier.

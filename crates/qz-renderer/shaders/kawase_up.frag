@@ -1,4 +1,7 @@
 #version 450
+// ============================================================================
+// 3.1. PIRÂMIDE DUAL-KAWASE BLUR — UPSAMPLE PASS (5 LEVELS: 1/32 .. 1/1, sigma >= 48px)
+// ============================================================================
 layout(location = 0) in vec2 v_uv;
 layout(location = 0) out vec4 frag_color;
 
@@ -9,16 +12,20 @@ layout(push_constant) uniform PushConstants {
     float offset;
 } pc;
 
-void main() {
-    vec2 d = pc.half_pixel * pc.offset;
+vec4 kawase_upsample(sampler2D tex, vec2 uv, vec2 half_pixel, float offset) {
+    vec2 d = half_pixel * offset;
     vec4 sum = vec4(0.0);
-    sum += texture(u_tex, v_uv + vec2(-d.x * 2.0, 0.0));
-    sum += texture(u_tex, v_uv + vec2( d.x * 2.0, 0.0));
-    sum += texture(u_tex, v_uv + vec2(0.0, -d.y * 2.0));
-    sum += texture(u_tex, v_uv + vec2(0.0,  d.y * 2.0));
-    sum += texture(u_tex, v_uv + vec2(-d.x,  d.y)) * 2.0;
-    sum += texture(u_tex, v_uv + vec2( d.x,  d.y)) * 2.0;
-    sum += texture(u_tex, v_uv + vec2(-d.x, -d.y)) * 2.0;
-    sum += texture(u_tex, v_uv + vec2( d.x, -d.y)) * 2.0;
-    frag_color = sum / 12.0;
+    sum += texture(tex, uv + vec2(-2.0 * d.x, 0.0));
+    sum += texture(tex, uv + vec2( 2.0 * d.x, 0.0));
+    sum += texture(tex, uv + vec2(0.0, -2.0 * d.y));
+    sum += texture(tex, uv + vec2(0.0,  2.0 * d.y));
+    sum += texture(tex, uv + vec2(-d.x,  d.y)) * 2.0;
+    sum += texture(tex, uv + vec2( d.x,  d.y)) * 2.0;
+    sum += texture(tex, uv + vec2(-d.x, -d.y)) * 2.0;
+    sum += texture(tex, uv + vec2( d.x, -d.y)) * 2.0;
+    return sum / 12.0;
+}
+
+void main() {
+    frag_color = kawase_upsample(u_tex, v_uv, pc.half_pixel, pc.offset);
 }

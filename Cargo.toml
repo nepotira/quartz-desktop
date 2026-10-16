@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "crates/qz-animation",
+    "crates/qz-icons",
     "crates/qz-renderer",
     "crates/qz-compositor",
     "crates/qz-shell",
@@ -22,7 +23,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.20.2-alpha.1"
+version = "0.21.0-alpha.1"
 edition = "2024"
 rust-version = "1.85"
 authors = ["QuartzLinux Core Systems Architecture Team <dev@quartzlinux.org>"]
@@ -79,6 +80,7 @@ memmap2 = "0.9"
 
 # Internal Workspace Crates
 qz-animation = { path = "crates/qz-animation" }
+qz-icons = { path = "crates/qz-icons" }
 qz-renderer = { path = "crates/qz-renderer" }
 qz-compositor = { path = "crates/qz-compositor" }
 qz-shell = { path = "crates/qz-shell" }

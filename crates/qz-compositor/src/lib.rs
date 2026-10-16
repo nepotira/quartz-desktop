@@ -9,6 +9,7 @@
 
 #![deny(missing_docs)]
 
+pub mod chrome;
 pub mod gestures;
 pub mod input;
 pub mod retina;
@@ -16,6 +17,10 @@ pub mod spaces;
 pub mod tiling;
 pub mod vrr;
 
+pub use chrome::{
+    build_titlebar_path_hierarchy, compute_resized_bounds, GreenButtonGlyph, ResizeEdge,
+    TitlePathEntry, TrafficLightAction, TrafficLightController, TrafficLightPalette,
+};
 pub use gestures::{GestureEngine, GesturePhase, TrackpadGesture};
 pub use input::{
     ClickThroughAction, ClickThroughDispatcher, ClickThroughResult, KeyMappingResult,

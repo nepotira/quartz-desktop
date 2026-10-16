@@ -14,6 +14,8 @@
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
 
+pub mod catalog;
+
 use std::collections::VecDeque;
 use std::f64::consts::PI;
 use thiserror::Error;
@@ -172,30 +174,30 @@ impl SpringParams {
         }
     }
 
-    /// Dock magnification hover envelope spring ($m = 1.0, k = 420.0, c = 40.0$).
+    /// Dock magnification hover envelope spring ($m = 1.0, k = 500.0, c = 45.0$).
     ///
-    /// Smoothly interpolates the magnification factor $E(t) \in [0.0, 1.0]$ upon cursor entry/exit.
+    /// Smoothly interpolates the magnification factor $\alpha_{\text{entry}} \in [0.0, 1.0]$ upon cursor entry/exit.
     #[inline]
     pub fn dock_hover_envelope() -> Self {
         Self {
             mass: 1.0,
-            stiffness: 420.0,
-            damping: 40.0,
+            stiffness: 500.0,
+            damping: 45.0,
         }
     }
 
-    /// Returns a new `SpringParams` dilated for macOS universal Shift slow-motion ($0.15\times$ speed).
+    /// Returns a new `SpringParams` dilated for macOS universal Shift slow-motion ($0.20\times$ speed).
     ///
-    /// Preserves the damping ratio $\zeta$ while dilating the time scale by $1/0.15 \approx 6.67\times$:
-    /// $$k \to 0.0225 \cdot k, \quad c \to 0.15 \cdot c$$
+    /// Preserves the damping ratio $\zeta$ while dilating the time scale by $1/0.20 = 5.0\times$:
+    /// $$k \to 0.04 \cdot k, \quad c \to 0.20 \cdot c$$
     #[must_use]
     #[inline]
     pub fn with_slow_motion(&self, is_slow: bool) -> Self {
         if is_slow {
             Self {
                 mass: self.mass,
-                stiffness: self.stiffness * 0.0225,
-                damping: self.damping * 0.15,
+                stiffness: self.stiffness * 0.04,
+                damping: self.damping * 0.20,
             }
         } else {
             *self
@@ -546,8 +548,8 @@ impl CursorShakeDetector {
     pub const REVERSAL_COS_THRESHOLD: f64 = -0.5;
     /// Required number of direction reversals within the window.
     pub const REQUIRED_REVERSALS: usize = 3;
-    /// Quiescence period before returning to 1.0x (650ms).
-    pub const SETTLE_DELAY: f64 = 0.650;
+    /// Quiescence period before returning to 1.0x (1200ms per Pillar 4 #15).
+    pub const SETTLE_DELAY: f64 = 1.200;
     /// Maximum expanded cursor magnification.
     pub const EXPANDED_SCALE: f64 = 8.0;
 
@@ -849,12 +851,12 @@ mod tests {
     fn test_dock_hover_envelope_and_slow_motion() {
         let envelope_params = SpringParams::dock_hover_envelope();
         assert_eq!(envelope_params.mass, 1.0);
-        assert_eq!(envelope_params.stiffness, 420.0);
-        assert_eq!(envelope_params.damping, 40.0);
+        assert_eq!(envelope_params.stiffness, 500.0);
+        assert_eq!(envelope_params.damping, 45.0);
 
         let slow = envelope_params.with_slow_motion(true);
-        assert!((slow.stiffness - 420.0 * 0.0225).abs() < 1e-4);
-        assert!((slow.damping - 40.0 * 0.15).abs() < 1e-4);
+        assert!((slow.stiffness - 500.0 * 0.04).abs() < 1e-4);
+        assert!((slow.damping - 45.0 * 0.20).abs() < 1e-4);
 
         let normal = slow.with_slow_motion(false);
         assert_eq!(normal, slow);

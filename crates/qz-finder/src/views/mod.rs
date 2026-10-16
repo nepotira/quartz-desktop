@@ -10,7 +10,10 @@ pub mod list_view;
 
 pub use column_view::{Column, ColumnItem, ColumnPreviewPane, ColumnViewManager};
 pub use gallery_view::{GalleryItem, GalleryViewManager};
-pub use icon_view::{IconArrangement, IconViewLayout, IconViewSettings, LabelPosition, PositionedIcon};
+pub use icon_view::{
+    rename_stem_selection_range, BipartiteSelectionGeometry, IconArrangement, IconViewLayout,
+    IconViewSettings, LabelPosition, PositionedIcon,
+};
 pub use list_view::{
     ListColumnConfig, ListColumnId, ListNode, ListViewManager, ListViewSettings, SortDirection,
 };
